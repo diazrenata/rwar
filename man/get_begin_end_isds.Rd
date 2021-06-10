@@ -4,10 +4,12 @@
 \alias{get_begin_end_isds}
 \title{Get ISDs for first and last 5 years}
 \usage{
-get_begin_end_isds(dataset)
+get_begin_end_isds(dataset, sd_dat = NULL)
 }
 \arguments{
 \item{dataset}{dataset}
+
+\item{sd_dat}{default NULL but can pass}
 }
 \value{
 list

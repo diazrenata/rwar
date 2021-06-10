@@ -70,13 +70,14 @@ get_begin_end_svs <- function(begin_end_isds) {
 #' Get ISDs for first and last 5 years
 #'
 #' @param dataset dataset
+#' @param sd_dat default NULL but can pass
 #'
 #' @return list
 #' @export
 #'
 #' @importFrom BBSsize simulate_isd_ts
 #'
-get_begin_end_isds <- function(dataset) {
+get_begin_end_isds <- function(dataset, sd_dat = NULL) {
 
   library(BBSsize)
 
@@ -85,8 +86,8 @@ get_begin_end_isds <- function(dataset) {
   endyears <- dataset$covariates$year[(nrow(dataset$covariates)-4) : nrow(dataset$covariates)]
 
 
-  isd1 <- BBSsize::simulate_isd_ts(dataset, censusyears = startyears)
-  isd2 <- BBSsize::simulate_isd_ts(dataset, censusyears = endyears)
+  isd1 <- BBSsize::simulate_isd_ts(dataset, censusyears = startyears, sd_dat = sd_dat)
+  isd2 <- BBSsize::simulate_isd_ts(dataset, censusyears = endyears, sd_dat = sd_dat)
 
   new_metadata <- dataset$metadata
   new_metadata$startyears = toString(startyears)
