@@ -43,13 +43,8 @@ get_begin_end_smooths <- function(begin_end_isds, smooth_method = "gmm") {
     dplyr::distinct() %>%
     cbind(both_isds) %>%
     dplyr::mutate(startyears = begin_end_isds$metadata$startyears,
-<<<<<<< HEAD
                   endyears =  begin_end_isds$metadata$endyears,
                   sim_seed = ifelse("seed" %in% names(begin_end_isds$metadata), begin_end_isds$metadata$seed, NA))
-
-=======
-                  endyears =  begin_end_isds$metadata$endyears)
->>>>>>> 92bac2f7568b839976614819ea4b422e81f9389d
   return(both_isds_with_id)
 
 }
@@ -185,7 +180,7 @@ overlap = function(begin_end_smooths) {
     dplyr::select(route, region, location.bcr, location.statenum, location.routename, startyears, endyears) %>%
     dplyr::mutate(overlap = overlap) %>%
     dplyr::distinct() %>%
-    dplyr::mutate(sim_seed = ifelse("seed" %in% names(begin_end_smooths$metadata), begin_end_smooths$metadata$seed, NA))
+    dplyr::mutate(sim_seed = ifelse("sim_seed" %in% colnames(begin_end_smooths), begin_end_smooths$sim_seed[1], NA))
 
   return(overlap_df)
 }
