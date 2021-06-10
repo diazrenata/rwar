@@ -13,6 +13,8 @@ shuffle_species <- function(dataset, seed = NULL) {
     seed <- sample.int(1000000000, size = 1)
   }
 
+  set.seed(seed)
+
   abundance_reshuffled <- dataset$abundance
 
   newspecies <- sample(colnames(abundance_reshuffled), size = ncol(abundance_reshuffled), replace = F)
