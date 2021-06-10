@@ -43,9 +43,13 @@ get_begin_end_smooths <- function(begin_end_isds, smooth_method = "gmm") {
     dplyr::distinct() %>%
     cbind(both_isds) %>%
     dplyr::mutate(startyears = begin_end_isds$metadata$startyears,
+<<<<<<< HEAD
                   endyears =  begin_end_isds$metadata$endyears,
                   sim_seed = ifelse("seed" %in% names(begin_end_isds$metadata), begin_end_isds$metadata$seed, NA))
 
+=======
+                  endyears =  begin_end_isds$metadata$endyears)
+>>>>>>> 92bac2f7568b839976614819ea4b422e81f9389d
   return(both_isds_with_id)
 
 }
@@ -184,4 +188,62 @@ overlap = function(begin_end_smooths) {
     dplyr::mutate(sim_seed = ifelse("seed" %in% names(begin_end_smooths$metadata), begin_end_smooths$metadata$seed, NA))
 
   return(overlap_df)
+}
+
+#' Get compositional turnover
+#'
+#' @param dataset dataset
+#'
+#' @return df
+#' @export
+#'
+#' @importFrom dplyr mutate group_by summarize ungroup distinct
+#'
+get_begin_end_composition <- function(dataset) {
+
+  startyears <- dataset$covariates$year[1:5]
+
+  endyears <- dataset$covariates$year[(nrow(dataset$covariates)-4) : nrow(dataset$covariates)]
+
+
+  start <- dataset$abundance[ which(dataset$covariates$year %in% startyears), ]
+  end <- dataset$abundance[ which(dataset$covariates$year %in% endyears), ]
+
+  start <- data.frame(
+    species = colnames(start),
+    abundance = colSums(start),
+    timechunk = "start"
+  )
+
+  start <- start %>%
+    dplyr::mutate(total = sum(abundance)) %>%
+    dplyr::mutate(relative = abundance / total)
+
+
+  end <- data.frame(
+    species = colnames(end),
+    abundance = colSums(end),
+    timechunk = "end"
+  )
+
+  end <- end %>%
+    dplyr::mutate(total = sum(abundance)) %>%
+    dplyr::mutate(relative = abundance / total)
+
+
+  composition <- dplyr::bind_rows(start,end)
+
+  composition_turnover <- composition %>%
+    dplyr::group_by(species) %>%
+    dplyr::summarize(min_relative = min(relative)) %>%
+    dplyr::ungroup() %>%
+    dplyr::summarize(composition_overlap = sum(min_relative))%>%
+    dplyr::mutate(route = dataset$metadata$route[1],
+                  region = dataset$metadata$region[1],
+                  location.bcr = dataset$metadata$location$bcr,
+                  sim_seed = ifelse("seed" %in% names(dataset$metadata), dataset$metadata$seed, NA))
+
+
+  return(composition_turnover)
+
 }

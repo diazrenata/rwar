@@ -22,7 +22,7 @@ shuffle_species <- function(dataset, seed = NULL) {
   shuffled_dat <- dataset
   shuffled_dat$abundance <- abundance_reshuffled
 
-  shuffled_dat$metadata$route = paste0(shuffled_dat$metadata$route, "_seed_", seed)
+  shuffled_dat$metadata$seed = seed
 
   return(shuffled_dat)
 
