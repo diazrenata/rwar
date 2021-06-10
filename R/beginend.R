@@ -36,14 +36,16 @@ get_begin_end_smooths <- function(begin_end_isds, smooth_method = "gmm") {
   both_isds <- both_isds %>%
     tidyr::pivot_wider(id_cols = mass, names_from = chunk, values_from = density) %>%
     dplyr::mutate(density_diff = end - start,
-           density_rat = end / start)
+                  density_rat = end / start)
 
   both_isds_with_id <- as.data.frame(begin_end_isds$metadata) %>%
     dplyr::select(route, region, location.bcr, location.statenum, location.routename) %>%
     dplyr::distinct() %>%
     cbind(both_isds) %>%
     dplyr::mutate(startyears = begin_end_isds$metadata$startyears,
-           endyears =  begin_end_isds$metadata$endyears)
+                  endyears =  begin_end_isds$metadata$endyears,
+                  sim_seed = ifelse("seed" %in% names(begin_end_isds$metadata), begin_end_isds$metadata$seed, NA))
+
   return(both_isds_with_id)
 
 }
@@ -54,13 +56,14 @@ get_begin_end_smooths <- function(begin_end_isds, smooth_method = "gmm") {
 #'
 #' @return df
 #' @export
-#' @importFrom dplyr bind_rows
+#' @importFrom dplyr bind_rows mutate
 get_begin_end_svs <- function(begin_end_isds) {
 
   start = summarize_isd(begin_end_isds$isd1)
   end = summarize_isd(begin_end_isds$isd2)
 
-  long= (dplyr::bind_rows(start = start, end = end, .id = "timechunk"))
+  long= (dplyr::bind_rows(start = start, end = end, .id = "timechunk")) %>%
+    dplyr::mutate(sim_seed = ifelse("seed" %in% names(begin_end_isds$metadata), begin_end_isds$metadata$seed, NA))
 
   return(long)
 }
@@ -147,7 +150,8 @@ summarize_isd <- function(isd) {
 
   isd_sv_with_id <- isd_sv %>%
     dplyr::mutate(route = isd$metadata$route[1],
-                  region = isd$metadata$region[1])
+                  region = isd$metadata$region[1],
+                  sim_seed = ifelse("seed" %in% names(isd$metadata), isd$metadata$seed, NA))
 
   return(isd_sv_with_id)
 
@@ -176,7 +180,8 @@ overlap = function(begin_end_smooths) {
   overlap_df <- begin_end_smooths %>%
     dplyr::select(route, region, location.bcr, location.statenum, location.routename, startyears, endyears) %>%
     dplyr::mutate(overlap = overlap) %>%
-    dplyr::distinct()
+    dplyr::distinct() %>%
+    dplyr::mutate(sim_seed = ifelse("seed" %in% names(begin_end_smooths$metadata), begin_end_smooths$metadata$seed, NA))
 
   return(overlap_df)
-  }
+}
