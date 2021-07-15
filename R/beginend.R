@@ -243,3 +243,56 @@ get_begin_end_composition <- function(dataset) {
   return(composition_turnover)
 
 }
+
+#' Get compositional raw
+#'
+#' @param dataset dataset
+#'
+#' @return df
+#' @export
+#'
+#' @importFrom dplyr mutate group_by summarize ungroup distinct
+#'
+get_begin_end_species <- function(dataset) {
+
+  startyears <- dataset$covariates$year[1:5]
+
+  endyears <- dataset$covariates$year[(nrow(dataset$covariates)-4) : nrow(dataset$covariates)]
+
+
+  start <- dataset$abundance[ which(dataset$covariates$year %in% startyears), ]
+  end <- dataset$abundance[ which(dataset$covariates$year %in% endyears), ]
+
+  start <- data.frame(
+    species = colnames(start),
+    abundance = colSums(start),
+    timechunk = "start"
+  )
+
+  start <- start %>%
+    dplyr::mutate(total = sum(abundance)) %>%
+    dplyr::mutate(relative = abundance / total)
+
+
+  end <- data.frame(
+    species = colnames(end),
+    abundance = colSums(end),
+    timechunk = "end"
+  )
+
+  end <- end %>%
+    dplyr::mutate(total = sum(abundance)) %>%
+    dplyr::mutate(relative = abundance / total)
+
+
+  composition <- dplyr::bind_rows(start,end) %>%
+  dplyr::mutate(route = dataset$metadata$route[1],
+                region = dataset$metadata$region[1],
+                location.bcr = dataset$metadata$location$bcr,
+                sim_seed = ifelse("seed" %in% names(dataset$metadata), dataset$metadata$seed, NA))
+
+
+  return(composition)
+
+}
+

@@ -18,12 +18,13 @@ fit_gmm <- function(size_vect) {
 #' Fits to log of mass
 #'
 #' @param isd from BBSsize::simulate_isd_ts
+#' @param max_size default 15000 but changeable for mammals
 #'
 #' @return dataframe with columns mass, density
 #' @export
 #'
 #' @importFrom dplyr mutate
-add_gmm <- function(isd) {
+add_gmm <- function(isd, max_size = 15000) {
 
   isd <- isd %>%
     dplyr::mutate(logmass = log(mass))
@@ -31,7 +32,7 @@ add_gmm <- function(isd) {
   gmm <- fit_gmm(isd$logmass)
 
 
-  gmm_isd <- data.frame(logmass = seq(0, log(15000), length.out = 1000))
+  gmm_isd <- data.frame(logmass = seq(0, log(max_size), length.out = 1000))
   gmm_isd$dens <- predict(gmm, newdata = gmm_isd$logmass)
 
 
