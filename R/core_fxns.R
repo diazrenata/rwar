@@ -2,19 +2,23 @@
 #'
 #' @param ts_isds result of BBSsize::simulate_isd_ts()
 #'
-#' @return data frame of state variables for each year, route region info, and seed used when simulating the ISD (if one was)
+#' @return data frame of state variables for each year, and seed used when simulating the ISD (if one was)
 #' @export
 #'
-#' @importFrom dplyr filter mutate
+#' @importFrom dplyr group_by summarize n ungroup mutate
 get_annual_svs <- function(ts_isds) {
 
-  annual_isds <- lapply(ts_isds$covariates$year, FUN = function(a_year, all_isds) return(list(isd = dplyr::filter(all_isds, year == a_year), covariates = ts_isds$covariates, metadata = ts_isds$metadata)), all_isds = ts_isds$isd)
-
-  isd_summaries <- lapply(annual_isds, rwar::summarize_isd)
-
-  dplyr::bind_rows(isd_summaries) %>%
-    dplyr::mutate(year = as.numeric(years))
-
+  ts_isds %>%
+    dplyr::mutate(ind_energy = estimate_b(mass)) %>%
+    dplyr::group_by(year, isd_seed) %>%
+    dplyr::summarize(abundance = dplyr::n(),
+              energy = sum(ind_energy),
+              biomass = sum(mass),
+             # median_energy = median(ind_energy),
+            #  median_biomass = median(mass),
+              mean_energy = mean(ind_energy),
+              mean_biomass = mean(mass)) %>%
+    dplyr::ungroup()
 }
 
 #' Fit a lm to the full timeseries
@@ -72,6 +76,7 @@ fit_timeseries_lm <- function(ts_svs, response_name) {
 #' @export
 #'
 #' @importFrom dplyr bind_rows
+#' @importFrom tidyr pivot_wider
 fit_all_timeseries_lms <- function(ts_svs) {
 
   n_lm <- fit_timeseries_lm(ts_svs, "abundance")
@@ -87,7 +92,8 @@ fit_all_timeseries_lms <- function(ts_svs) {
     b_lm,
     me_lm,
     mb_lm
-  )
+  )%>%
+    tidyr::pivot_wider(names_from = response, values_from = c(2:5))
 
   return(all_lm)
 }
@@ -105,11 +111,11 @@ fit_all_timeseries_lms <- function(ts_svs) {
 pull_caps <- function(ts_svs, begin_years = NULL, end_years = NULL){
 
   if(is.null(begin_years)) {
-    begin_years <- ts_svs$year[ (min(ts_svs$year)):(max(ts_svs$year) + 4)]
+    begin_years <- sort(unique(ts_svs$year))[1:5]
   }
 
   if(is.null(end_years)) {
-    end_years <- ts_svs$year[ (max(ts_svs$year) - 4):(max(ts_svs$year))]
+    end_years <-  sort(unique(ts_svs$year))[ (length(unique(ts_svs$year)) - 4):length(unique(ts_svs$year))]
   }
 
   if(min(end_years) < max(begin_years)) {
@@ -179,6 +185,7 @@ fit_caps_lm <- function(caps_svs, response_name) {
 #' @export
 #'
 #' @importFrom dplyr bind_rows
+#' @importFrom tidyr pivot_wider
 fit_all_caps_lms <- function(caps_svs) {
 
   n_lm <- fit_caps_lm(caps_svs, "abundance")
@@ -194,7 +201,8 @@ fit_all_caps_lms <- function(caps_svs) {
     b_lm,
     me_lm,
     mb_lm
-  )
+  ) %>%
+    tidyr::pivot_wider(names_from = response, values_from = c(2:5))
 
   return(all_lm)
 }
@@ -223,9 +231,190 @@ compute_raw_sv_change <- function(caps_svs) {
 
   raw_results <- raw_change[2, 2:6] / raw_change[1, 2:6]
 
-  raw_results <- raw_results %>%
-    tidyr::pivot_longer(tidyselect::everything(), names_to = "response", values_to = "raw_ratio")
+  colnames(raw_results) <- paste0(colnames(raw_results), "_raw_ratio")
 
 
   return(raw_results)
+}
+
+
+#' Compute ISD turnover
+#'
+#' @param ts_isds result of simulate_isd_ts
+#' @param begin_years optional
+#' @param end_years optional
+#'
+#' @return df of turnover
+#' @export
+#' @importFrom dplyr filter mutate group_by summarize ungroup select bind_rows
+compare_isds <- function(ts_isds, begin_years = NULL, end_years = NULL) {
+
+
+  if(is.null(begin_years)) {
+    begin_years <- sort(unique(ts_isds$year))[1:5]
+  }
+
+  if(is.null(end_years)) {
+    end_years <- sort(unique(ts_isds$year))[ (length(unique(ts_isds$year)) - 4):length(unique(ts_isds$year))]
+  }
+
+  if(min(end_years) < max(begin_years)) {
+    stop("End overlaps beginning")
+  }
+
+  begin_isd <- dplyr::filter(ts_isds, year %in% begin_years)
+  end_isd <- dplyr::filter(ts_isds, year %in% end_years)
+#
+#   compare_isds <- dplyr::bind_rows(begin_isd, end_isd) %>%
+#     dplyr::mutate(timeperiod = ifelse(year %in% end_years, "end", "begin")) %>%
+#     dplyr::group_by(timeperiod) %>%
+#     dplyr::summarize(mean_size = mean(mass),
+#                      median_size = median(mass)) %>%
+#     dplyr::ungroup() %>%
+#     tidyr::pivot_wider(names_from = timeperiod, values_from = c(mean_size, median_size)) %>%
+#     dplyr::mutate(
+#       mean_size_ratio = mean_size_end / mean_size_begin,
+#       median_size_ratio = median_size_end / median_size_begin
+#     )
+
+  begin_gmm <- add_gmm(begin_isd) %>%
+    dplyr::mutate(timeperiod = "begin")
+  end_gmm <- add_gmm(end_isd) %>%
+    dplyr::mutate(timeperiod = "end")
+
+
+  compare_gmms <- dplyr::bind_rows(begin_gmm, end_gmm)
+
+
+  isd_overlap <- compare_gmms %>%
+    dplyr::group_by(mass) %>%
+    dplyr::summarize(mindensity = min(density)) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(mindensity) %>%
+    dplyr::summarize(isd_turnover =1- sum(mindensity))
+
+  isd_overlap
+
+}
+
+#' half-way point of a gmm
+#'
+#' I think this is just getting you to the median mass, in a v roundabout way. I was interested in it because I'm interested in like 50% of the community-level biomass/energy use, but this is not that, because the ISD GMMS are fit on individual frequency and not wieghted by individual size. Sidebar.
+#'
+#' @param a_gmm a gmm
+#'
+#' @return halfsat
+#' @export
+#'
+gmm_halfsat <- function(a_gmm) {
+
+  totald <- 0
+  i = 1
+
+  while(totald < .5) {
+
+    totald = totald + a_gmm$density[i]
+
+    i = i + 1
+
+  }
+
+  return(a_gmm$mass[i])
+
+
+}
+
+#' Compare species composition
+#'
+#' @param ts_comp MATSS dataset
+#' @param begin_years optional
+#' @param end_years optional
+#'
+#' @return dataframe
+#' @export
+#'
+#' @importFrom dplyr group_by summarize ungroup mutate select bind_rows
+#' @importFrom vegan vegdist
+compare_species_composition <- function(ts_comp, begin_years = NULL, end_years = NULL) {
+
+  if(is.null(begin_years)) {
+    begin_years <- ts_comp$covariates$year[1:5]
+  }
+
+  if(is.null(end_years)) {
+    end_years <- ts_comp$covariates$year[ (length(ts_comp$covariates$year) - 4):length(ts_comp$covariates$year)]
+  }
+
+  if(min(end_years) < max(begin_years)) {
+    stop("End overlaps beginning")
+  }
+
+  begin_rows <- which(ts_comp$covariates$year %in% begin_years)
+
+
+ end_rows <- which(ts_comp$covariates$year %in% end_years)
+ begin_composition <- colSums(ts_comp$abundance[begin_rows, ])
+
+ end_composition <- colSums(ts_comp$abundance[end_rows, ])
+
+ begin_relabund <- begin_composition / sum(begin_composition)
+
+ end_relabund <- end_composition / sum(end_composition)
+
+ relabund <- data.frame(
+   begin = begin_relabund,
+   end = end_relabund,
+   beginsp = names(begin_relabund),
+   endsp = names(end_relabund)
+ )
+
+ relabund_change <- relabund %>%
+   dplyr::group_by(beginsp) %>%
+   dplyr::summarize(minRel = min(begin, end)) %>%
+   dplyr::ungroup() %>%
+   dplyr::select(minRel) %>%
+   dplyr::summarize(sp_turnover = 1-sum(minRel))
+
+
+ be_matrix <- dplyr::bind_rows(begin_composition, end_composition)
+
+ be_diss <- vegan::vegdist(be_matrix)
+
+ relabund_change <- relabund_change %>%
+   dplyr::mutate(bcd = be_diss)
+
+ relabund_change
+
+
+}
+
+#' Run and collect all core analyses
+#'
+#' @param ts_comp a MATSS_style dataset
+#' @param begin_years optional
+#' @param end_years optional
+#' @param isd_seed optional
+#'
+#' @return results
+#' @export
+#'
+#' @importFrom dplyr bind_cols mutate
+#' @importFrom BBSsize simulate_isd_ts
+all_core_analyses <- function(ts_comp, begin_years = NULL, end_years = NULL, isd_seed = NULL) {
+
+ts_isd <- BBSsize::simulate_isd_ts(ts_comp, isd_seed = isd_seed)
+ts_svs <- get_annual_svs(ts_isd$isd)
+ts_lms <- fit_all_timeseries_lms(ts_svs)
+caps_svs <- pull_caps(ts_svs, begin_years, end_years)
+caps_lms <- fit_all_caps_lms(caps_svs)
+raw_ratios <-  compute_raw_sv_change(d_svs_beginend)
+set.seed(1977)
+isd_turn <- compare_isds(ts_isd$isd, begin_years, end_years)
+comp_turn <- compare_species_composition(ts_comp, begin_years, end_years)
+
+
+all_results <- dplyr::bind_cols(ts_lms, caps_lms, raw_ratios, isd_turn, comp_turn, as.data.frame(ts_comp$metadata$location)) %>%
+  dplyr::mutate(beginyears = toString(begin_years),
+                endyears = toString(end_years))
+return(all_results)
 }

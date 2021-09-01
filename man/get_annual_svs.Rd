@@ -10,7 +10,7 @@ get_annual_svs(ts_isds)
 \item{ts_isds}{result of BBSsize::simulate_isd_ts()}
 }
 \value{
-data frame of state variables for each year, route region info, and seed used when simulating the ISD (if one was)
+data frame of state variables for each year, and seed used when simulating the ISD (if one was)
 }
 \description{
 Calculate state variables for every year given ISDs
