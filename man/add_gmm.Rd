@@ -4,12 +4,14 @@
 \alias{add_gmm}
 \title{Add GMM density to an ISD}
 \usage{
-add_gmm(isd, max_size = 15000)
+add_gmm(isd, max_size = 15000, max_G = 15)
 }
 \arguments{
 \item{isd}{from BBSsize::simulate_isd_ts}
 
 \item{max_size}{default 15000 but changeable for mammals}
+
+\item{max_G}{max n gaussians}
 }
 \value{
 dataframe with columns mass, density
