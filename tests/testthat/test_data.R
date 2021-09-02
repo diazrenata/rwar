@@ -5,81 +5,29 @@ test_that("trivial", {
 
 }
 )
-test_that("portal annual works", {
 
-  portal_annual <- get_rodents_annual()
+library(BBSsize)
 
-  expect_true(length(portal_annual) == 3)
+h <- BBSsize::hartland
 
-  expect_true(names(portal_annual)[1] == "abundance")
-  expect_true(names(portal_annual)[2] == "covariates")
-  expect_true(names(portal_annual)[3] == "metadata")
+h_isd <- BBSsize::simulate_isd_ts(h, isd_seed = 2021)
 
-  expect_true(is.data.frame(portal_annual$abundance))
-  expect_true(is.data.frame(portal_annual$covariates))
+test_that("svs works", {
 
-  expect_equal(nrow(portal_annual$abundance), nrow(portal_annual$covariates))
+  h_svs <- get_annual_svs(h_isd$isd)
 
-  expect_true("year" %in% colnames(portal_annual$covariates))
-
-  expect_equal(ncol(portal_annual$abundance), 21)
-  expect_equal(ncol(portal_annual$covariates), 2)
-
-  expect_false(anyNA(portal_annual$abundance))
-
-  expect_true(all(portal_annual$covariates$year == c(1979:2018)))
-}
-)
-
-test_that("subset_data_one works as expected", {
-
-  portal_annual <- get_rodents_annual()
-
-  subset_data_firstyear = subset_data_one(portal_annual, test_timestep = 1, buffer_size = 2)
-
-  expect_true(length(subset_data_firstyear) == 5)
-  expect_true(subset_data_firstyear$test$covariates$year == 1979)
-  expect_true(subset_data_firstyear$train$covariates$year[1] == 1982)
-  expect_true(nrow(subset_data_firstyear$train$abundance) == 37)
-
-  subset_data_middleyear = subset_data_one(portal_annual, test_timestep = 10, buffer_size = 2)
-
-  expect_true(subset_data_middleyear$test$covariates$year == 1988)
-  expect_true(subset_data_middleyear$train$covariates$year[1] == 1979)
-  expect_true(nrow(subset_data_middleyear$train$abundance) == 35)
-
-  subset_data_lastyear = subset_data_one(portal_annual, test_timestep = 40, buffer_size = 2)
-
-  expect_true(subset_data_lastyear$test$covariates$year == 2018)
-  expect_true(subset_data_lastyear$train$covariates$year[1] == 1979)
-  expect_true(nrow(subset_data_lastyear$train$abundance) == 37)
-
-
-}
-)
-
-test_that("subset_data_all works as expected", {
-  portal_annual <- get_rodents_annual()
-
-  all_subsets <- subset_data_all(portal_annual, buffer_size = 2)
-
-  expect_true(length(all_subsets) == 40)
-
-
-  subset_data_firstyear = subset_data_one(portal_annual, test_timestep = 1, buffer_size = 2)
-
-  for(i in 1:5) {
-    expect_equal(all_subsets[[1]][[i]], subset_data_firstyear[[i]])
-
-    }
-
-
-
-
-  subset_data_middleyear = subset_data_one(portal_annual, test_timestep = 10, buffer_size = 2)
-  for(i in 1:5) {
-    expect_equal(all_subsets[[10]][[i]], subset_data_middleyear[[i]])
+  expect_true(all(h_svs$year == 1994:2018))
+  expect_true(nrow(h_svs) == 25)
+  expect_true(ncol(h_svs) == 7)
+  expect_false(anyNA(h_svs))
+  expect_true(all(h_svs$abundance == rowSums(h$abundance)))
+  expect_true((h_svs$biomass[1]) == sum((dplyr::filter(h_isd$isd, year == 1994)$mass)))
+  expect_true((h_svs$energy[1]) == sum(BBSsize::estimate_b(dplyr::filter(h_isd$isd, year == 1994)$mass)))
+  expect_true(floor(h_svs$energy[1]) == 94302)
+  expect_true(floor(h_svs$biomass[1]) == 36983)
+  expect_true(all(floor(h_svs$mean_energy) == floor(h_svs$energy/h_svs$abundance)))
+  expect_true(all(floor(h_svs$mean_biomass) == floor(h_svs$biomass/h_svs$abundance)))
 
   }
-}
 )
+
