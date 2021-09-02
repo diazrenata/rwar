@@ -66,30 +66,3 @@ test_that("pull caps works with caps specified", {
 
 }
 )
-
-
-test_that("raw ratios works", {
-
-  h_svs <- get_annual_svs(h_isd$isd)
-
-  h_caps <- pull_caps(h_svs)
-
-  raw_change <- compute_raw_sv_change(h_caps)
-
-  expect_true(nrow(raw_change) == 1)
-  expect_true(ncol(raw_change) == 5)
-
-  expect_false(anyNA(raw_change))
-
-  expect_true(raw_change$energy_raw_ratio == sum(h_caps$energy[6:10])/sum(h_caps$energy[1:5]))
-
-  expect_true(raw_change$abundance_raw_ratio == sum(h_caps$abundance[6:10])/sum(h_caps$abundance[1:5]))
-
-  expect_true(raw_change$biomass_raw_ratio == sum(h_caps$biomass[6:10])/sum(h_caps$biomass[1:5]))
-
-  expect_true(raw_change$mean_energy_raw_ratio == (sum(h_caps$energy[6:10]) / sum(h_caps$abundance[6:10]))/(sum(h_caps$energy[1:5])/sum(h_caps$abundance[1:5])))
-
-  expect_true(raw_change$mean_biomass_raw_ratio == (sum(h_caps$biomass[6:10]) / sum(h_caps$abundance[6:10]))/(sum(h_caps$biomass[1:5])/sum(h_caps$abundance[1:5])))
-
-  }
-)
