@@ -22,6 +22,7 @@ Imports:
     mclust,
     vegan
 Suggests:
+    covr,
     testthat
 Remotes: 
     diazrenata/BBSsize
