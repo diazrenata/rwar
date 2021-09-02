@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 
+drake/*
+
+.DS_Store
