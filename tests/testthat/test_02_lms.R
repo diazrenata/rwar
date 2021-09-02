@@ -1,68 +1,65 @@
-test_that("trivial", {
-
-  expect_true(TRUE)
-
-
-}
-)
-
 library(BBSsize)
 
 h <- BBSsize::hartland
+h_isd <- BBSsize::simulate_isd_ts(h, isd_seed = 1977)
+h_svs <- get_annual_svs(h_isd$isd)
 
-h_isd <- BBSsize::simulate_isd_ts(h, isd_seed = 2021)
+test_that("lm on full timeseries works", {
 
+  ts_lm <- fit_all_timeseries_lms(h_svs)
 
-test_that("svs works", {
+  abund_lm <- lm(abundance ~ year, data = h_svs)
 
-  h_svs <- get_annual_svs(h_isd$isd)
+  abund_p <- anova(abund_lm)$`Pr(>F)`[1]
 
-  expect_true(all(h_svs$year == 1994:2018))
-  expect_true(nrow(h_svs) == 25)
-  expect_true(ncol(h_svs) == 7)
-  expect_false(anyNA(h_svs))
-  expect_true(all(h_svs$abundance == rowSums(h$abundance)))
-  expect_true((h_svs$biomass[1]) == sum((dplyr::filter(h_isd$isd, year == 1994)$mass)))
-  expect_true((h_svs$energy[1]) == sum(BBSsize::estimate_b(dplyr::filter(h_isd$isd, year == 1994)$mass)))
-  expect_true(floor(h_svs$energy[1]) == 94302)
-  expect_true(floor(h_svs$biomass[1]) == 36982)
-  expect_true(all(floor(h_svs$mean_energy) == floor(h_svs$energy/h_svs$abundance)))
-  expect_true(all(floor(h_svs$mean_biomass) == floor(h_svs$biomass/h_svs$abundance)))
+  abund_summary <- summary(abund_lm)
 
-  }
-)
+  abund_r2 <- abund_summary$r.squared
 
-test_that("pull caps works no caps specified", {
+  abund_coefs <- coef(abund_lm)
 
-  h_svs <- get_annual_svs(h_isd$isd)
+  abund_slope <- abund_coefs["year"]
+
+  abund_fitted_ratio <- abund_lm$fitted.values[25] / abund_lm$fitted.values[1]
+
+  expect_true(abund_p == ts_lm$p_ts_abundance)
+  expect_true(abund_r2 == ts_lm$r2_ts_abundance)
+  expect_true(abund_slope == ts_lm$slope_ts_abundance)
+  expect_true(abund_fitted_ratio == ts_lm$fitted_ratio_ts_abundance)
+
+  expect_false(anyNA(ts_lm))
+  expect_false(any(ts_lm[,1:5] > 1) )
+  expect_false(any(ts_lm[,1:5] < 0) )
+
+  })
+
+test_that("lm on caps works", {
 
   h_caps <- pull_caps(h_svs)
 
-  expect_true(nrow(h_caps) == 10)
+  caps_lm <- fit_all_caps_lms(h_caps)
 
-  expect_true(all(h_caps[1:5, 1:7] == h_svs[1:5, ]))
-  expect_true(all(h_caps[6:10, 1:7] == h_svs[21:25, ]))
-  expect_true(all(h_caps$timeperiod[1:5] == "begin"))
-  expect_true(all(h_caps$timeperiod[6:10] == "end"))
+  abund_lm <- lm(abundance ~ timeperiod, data = h_caps)
 
-  }
-)
+  abund_p <- anova(abund_lm)$`Pr(>F)`[1]
 
+  abund_summary <- summary(abund_lm)
 
-test_that("pull caps works with caps specified", {
+  abund_r2 <- abund_summary$r.squared
 
-  h_svs <- get_annual_svs(h_isd$isd)
+  abund_coefs <- coef(abund_lm)
 
-  h_caps <- pull_caps(h_svs, begin_years = c(2000:2004), end_years = c(2010:2014))
+  abund_slope <- abund_coefs["timeperiodend"]
 
-  expect_true(nrow(h_caps) == 10)
+  abund_fitted_ratio <- abund_lm$fitted.values[10] / abund_lm$fitted.values[1]
 
-  expect_true(all(h_caps[1:5, 1:7] == h_svs[7:11, ]))
-  expect_true(all(h_caps[6:10, 1:7] == h_svs[17:21, ]))
-  expect_true(all(h_caps$timeperiod[1:5] == "begin"))
-  expect_true(all(h_caps$timeperiod[6:10] == "end"))
+  expect_true(abund_p == caps_lm$p_caps_abundance)
+  expect_true(abund_r2 == caps_lm$r2_caps_abundance)
+  expect_true(abund_slope == caps_lm$slope_caps_abundance)
+  expect_true(abund_fitted_ratio == caps_lm$fitted_ratio_caps_abundance)
 
-  expect_error(pull_caps(h_svs, begin_years = c(2000:2004), end_years = c(1994:1998)))
+  expect_false(anyNA(caps_lm))
+  expect_false(any(caps_lm[,1:5] > 1) )
+  expect_false(any(caps_lm[,1:5] < 0) )
 
-}
-)
+})

@@ -297,32 +297,6 @@ compare_isds <- function(ts_isds, begin_years = NULL, end_years = NULL) {
 
 }
 
-#' half-way point of a gmm
-#'
-#' I think this is just getting you to the median mass, in a v roundabout way. I was interested in it because I'm interested in like 50% of the community-level biomass/energy use, but this is not that, because the ISD GMMS are fit on individual frequency and not wieghted by individual size. Sidebar.
-#'
-#' @param a_gmm a gmm
-#'
-#' @return halfsat
-#' @export
-#'
-gmm_halfsat <- function(a_gmm) {
-
-  totald <- 0
-  i = 1
-
-  while(totald < .5) {
-
-    totald = totald + a_gmm$density[i]
-
-    i = i + 1
-
-  }
-
-  return(a_gmm$mass[i])
-
-
-}
 
 #' Compare species composition
 #'
