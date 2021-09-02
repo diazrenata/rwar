@@ -1,4 +1,4 @@
-- name: Codecov
+name: Codecov
   # You may pin to the exact commit or the version.
   # uses: codecov/codecov-action@5a8bb4701eca7ba3673f21664b887f652c58d0a3
   uses: codecov/codecov-action@v2.0.3
