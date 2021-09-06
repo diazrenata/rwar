@@ -12,12 +12,12 @@ get_annual_svs <- function(ts_isds) {
     dplyr::mutate(ind_energy = estimate_b(mass)) %>%
     dplyr::group_by(year, isd_seed) %>%
     dplyr::summarize(abundance = dplyr::n(),
-              energy = sum(ind_energy),
-              biomass = sum(mass),
-             # median_energy = median(ind_energy),
-            #  median_biomass = median(mass),
-              mean_energy = mean(ind_energy),
-              mean_biomass = mean(mass)) %>%
+                     energy = sum(ind_energy),
+                     biomass = sum(mass),
+                     # median_energy = median(ind_energy),
+                     #  median_biomass = median(mass),
+                     mean_energy = mean(ind_energy),
+                     mean_biomass = mean(mass)) %>%
     dplyr::ungroup()
 }
 
@@ -223,10 +223,10 @@ compute_raw_sv_change <- function(caps_svs) {
   raw_change <- caps_svs %>%
     dplyr::group_by(timeperiod) %>%
     dplyr::summarize(energy = sum(energy),
-              abundance = sum(abundance),
-              biomass = sum(biomass)) %>%
+                     abundance = sum(abundance),
+                     biomass = sum(biomass)) %>%
     dplyr::mutate(mean_energy = energy / abundance,
-           mean_biomass = biomass / abundance) %>%
+                  mean_biomass = biomass / abundance) %>%
     dplyr::ungroup()
 
   raw_results <- raw_change[2, 2:6] / raw_change[1, 2:6]
@@ -264,18 +264,18 @@ compare_isds <- function(ts_isds, begin_years = NULL, end_years = NULL) {
 
   begin_isd <- dplyr::filter(ts_isds, year %in% begin_years)
   end_isd <- dplyr::filter(ts_isds, year %in% end_years)
-#
-#   compare_isds <- dplyr::bind_rows(begin_isd, end_isd) %>%
-#     dplyr::mutate(timeperiod = ifelse(year %in% end_years, "end", "begin")) %>%
-#     dplyr::group_by(timeperiod) %>%
-#     dplyr::summarize(mean_size = mean(mass),
-#                      median_size = median(mass)) %>%
-#     dplyr::ungroup() %>%
-#     tidyr::pivot_wider(names_from = timeperiod, values_from = c(mean_size, median_size)) %>%
-#     dplyr::mutate(
-#       mean_size_ratio = mean_size_end / mean_size_begin,
-#       median_size_ratio = median_size_end / median_size_begin
-#     )
+  #
+  #   compare_isds <- dplyr::bind_rows(begin_isd, end_isd) %>%
+  #     dplyr::mutate(timeperiod = ifelse(year %in% end_years, "end", "begin")) %>%
+  #     dplyr::group_by(timeperiod) %>%
+  #     dplyr::summarize(mean_size = mean(mass),
+  #                      median_size = median(mass)) %>%
+  #     dplyr::ungroup() %>%
+  #     tidyr::pivot_wider(names_from = timeperiod, values_from = c(mean_size, median_size)) %>%
+  #     dplyr::mutate(
+  #       mean_size_ratio = mean_size_end / mean_size_begin,
+  #       median_size_ratio = median_size_end / median_size_begin
+  #     )
 
   begin_gmm <- add_gmm(begin_isd) %>%
     dplyr::mutate(timeperiod = "begin")
@@ -326,38 +326,88 @@ compare_species_composition <- function(ts_comp, begin_years = NULL, end_years =
   begin_rows <- which(ts_comp$covariates$year %in% begin_years)
 
 
- end_rows <- which(ts_comp$covariates$year %in% end_years)
- begin_composition <- colSums(ts_comp$abundance[begin_rows, ])
+  end_rows <- which(ts_comp$covariates$year %in% end_years)
+  begin_composition <- colSums(ts_comp$abundance[begin_rows, ])
 
- end_composition <- colSums(ts_comp$abundance[end_rows, ])
+  end_composition <- colSums(ts_comp$abundance[end_rows, ])
 
- begin_relabund <- begin_composition / sum(begin_composition)
+  begin_relabund <- begin_composition / sum(begin_composition)
 
- end_relabund <- end_composition / sum(end_composition)
+  end_relabund <- end_composition / sum(end_composition)
 
- relabund <- data.frame(
-   begin = begin_relabund,
-   end = end_relabund,
-   beginsp = names(begin_relabund),
-   endsp = names(end_relabund)
- )
+  relabund <- data.frame(
+    begin = begin_relabund,
+    end = end_relabund,
+    beginsp = names(begin_relabund),
+    endsp = names(end_relabund)
+  )
 
- relabund_change <- relabund %>%
-   dplyr::group_by(beginsp) %>%
-   dplyr::summarize(minRel = min(begin, end)) %>%
-   dplyr::ungroup() %>%
-   dplyr::select(minRel) %>%
-   dplyr::summarize(sp_turnover = 1-sum(minRel))
+  relabund_change <- relabund %>%
+    dplyr::group_by(beginsp) %>%
+    dplyr::summarize(minRel = min(begin, end)) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(minRel) %>%
+    dplyr::summarize(sp_turnover = 1-sum(minRel))
 
 
- be_matrix <- dplyr::bind_rows(begin_composition, end_composition)
+  be_matrix <- dplyr::bind_rows(begin_composition, end_composition)
 
- be_diss <- vegan::vegdist(be_matrix)
+  be_diss <- vegan::vegdist(be_matrix)
 
- relabund_change <- relabund_change %>%
-   dplyr::mutate(bcd = be_diss)
+  relabund_change <- relabund_change %>%
+    dplyr::mutate(bcd = be_diss)
 
- relabund_change
+  relabund_change
+
+
+}
+
+#' Interaction of sv change
+#'
+#' @param caps_svs caps_svs
+#'
+#' @return df
+#' @export
+#'
+#' @importFrom dplyr mutate filter
+#' @importFrom tidyr pivot_wider
+interaction_lms <- function(caps_svs) {
+
+  rangescale <- function(vect) {
+
+    vectrange <- max(vect) - min(vect)
+
+    vect = (vect - min(vect)) / vectrange
+
+    vect
+
+  }
+
+  caps_svs <- caps_svs %>%
+    dplyr::mutate(energy = rangescale((energy)),
+                  abundance = rangescale((abundance)),
+                  biomass = rangescale(biomass))
+
+  caps_long <- caps_svs %>%
+    tidyr::pivot_longer(c(-year, -timeperiod), names_to = "currency", values_to = "val")%>%
+    dplyr::filter(currency %in% c("energy", "abundance", "biomass"))
+
+  cap_lm <- lm(val ~ timeperiod * currency, data = caps_long)
+
+  cap_lm_results <- summary(cap_lm)
+
+  cap_lm_ps <- cap_lm_results$coefficients
+
+
+  cap_p <- pf(cap_lm_results$fstatistic[1], cap_lm_results$fstatistic[2], cap_lm_results$fstatistic[3], lower.tail = F)
+  cap_lm_results_wide <- cap_lm_ps %>%
+    as.data.frame() %>%
+    dplyr::mutate(coef_name = row.names(.)) %>%
+    tidyr::pivot_wider(names_from = coef_name, values_from = c("Estimate", "Std. Error", "t value", "Pr(>|t|)")) %>%
+    dplyr::mutate(overall_p = cap_p,
+                  overall_r2 = cap_lm_results$r.squared)
+
+  cap_lm_results_wide
 
 
 }
@@ -376,19 +426,20 @@ compare_species_composition <- function(ts_comp, begin_years = NULL, end_years =
 #' @importFrom BBSsize simulate_isd_ts
 all_core_analyses <- function(ts_comp, begin_years = NULL, end_years = NULL, isd_seed = NULL) {
 
-ts_isd <- BBSsize::simulate_isd_ts(ts_comp, isd_seed = isd_seed)
-ts_svs <- get_annual_svs(ts_isd$isd)
-ts_lms <- fit_all_timeseries_lms(ts_svs)
-caps_svs <- pull_caps(ts_svs, begin_years, end_years)
-caps_lms <- fit_all_caps_lms(caps_svs)
-raw_ratios <-  compute_raw_sv_change(caps_svs)
-set.seed(1977)
-isd_turn <- compare_isds(ts_isd$isd, begin_years, end_years)
-comp_turn <- compare_species_composition(ts_comp, begin_years, end_years)
+  ts_isd <- BBSsize::simulate_isd_ts(ts_comp, isd_seed = isd_seed)
+  ts_svs <- get_annual_svs(ts_isd$isd)
+  ts_lms <- fit_all_timeseries_lms(ts_svs)
+  caps_svs <- pull_caps(ts_svs, begin_years, end_years)
+  caps_lms <- fit_all_caps_lms(caps_svs)
+  i_lms <- interaction_lms(caps_svs)
+  raw_ratios <-  compute_raw_sv_change(caps_svs)
+  set.seed(1977)
+  isd_turn <- compare_isds(ts_isd$isd, begin_years, end_years)
+  comp_turn <- compare_species_composition(ts_comp, begin_years, end_years)
 
 
-all_results <- dplyr::bind_cols(ts_lms, caps_lms, raw_ratios, isd_turn, comp_turn, as.data.frame(ts_comp$metadata$location)) %>%
-  dplyr::mutate(beginyears = toString(begin_years),
-                endyears = toString(end_years))
-return(all_results)
+  all_results <- dplyr::bind_cols(ts_lms, caps_lms, raw_ratios, i_lms, isd_turn, comp_turn, as.data.frame(ts_comp$metadata$location)) %>%
+    dplyr::mutate(beginyears = toString(begin_years),
+                  endyears = toString(end_years))
+  return(all_results)
 }
