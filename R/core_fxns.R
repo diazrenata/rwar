@@ -448,6 +448,7 @@ all_core_analyses <- function(ts_comp, begin_years = NULL, end_years = NULL, isd
 
   all_results <- dplyr::bind_cols(ts_lms, caps_lms, raw_ratios, i_lms, isd_turn, comp_turn, as.data.frame(ts_comp$metadata$location)) %>%
     dplyr::mutate(beginyears = toString(begin_years),
-                  endyears = toString(end_years))
+                  endyears = toString(end_years),
+                  isd_seed = ts_isd$isd$isd_seed[1])
   return(all_results)
 }
