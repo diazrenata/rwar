@@ -15,6 +15,7 @@ RoxygenNote: 7.1.1
 Imports: 
     BBSsize,
     dplyr,
+    emmeans,
     tidyr,
     tidyselect,
     portalr,

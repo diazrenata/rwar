@@ -371,6 +371,7 @@ compare_species_composition <- function(ts_comp, begin_years = NULL, end_years =
 #'
 #' @importFrom dplyr mutate filter
 #' @importFrom tidyr pivot_wider
+#' @importFrom emmeans emmeans
 interaction_lms <- function(caps_svs) {
 
   rangescale <- function(vect) {
@@ -399,13 +400,20 @@ interaction_lms <- function(caps_svs) {
   cap_lm_ps <- cap_lm_results$coefficients
 
 
+  cap_contrasts <- emmeans::emmeans(cap_lm, specs = ~ timeperiod | currency)
+
+  cap_contrast_sig <- as.data.frame(pairs(cap_contrasts)) %>%
+    dplyr::select(currency, p.value) %>%
+    tidyr::pivot_wider(names_from = currency, values_from = p.value, names_glue = "{currency}_contrast{.value}")
+
   cap_p <- pf(cap_lm_results$fstatistic[1], cap_lm_results$fstatistic[2], cap_lm_results$fstatistic[3], lower.tail = F)
   cap_lm_results_wide <- cap_lm_ps %>%
     as.data.frame() %>%
     dplyr::mutate(coef_name = row.names(.)) %>%
     tidyr::pivot_wider(names_from = coef_name, values_from = c("Estimate", "Std. Error", "t value", "Pr(>|t|)")) %>%
     dplyr::mutate(overall_p = cap_p,
-                  overall_r2 = cap_lm_results$r.squared)
+                  overall_r2 = cap_lm_results$r.squared) %>%
+    cbind(cap_contrast_sig)
 
   cap_lm_results_wide
 
