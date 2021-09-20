@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • rwar</title>
+<title>Local null model — local_null_model • rwar</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,8 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Local null model — local_null_model" />
+<meta property="og:description" content="Reassign species IDs using all species ever observed on a single route." />
 
 
 
@@ -58,7 +59,7 @@
   </head>
 
   <body data-spy="scroll" data-target="#toc">
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -100,120 +101,56 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Local null model</h1>
+    
+    <div class="hidden name"><code>local_null_model.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    <p>Reassign species IDs using all species ever observed on a single route.</p>
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
+    <pre class="usage"><span class='fu'>local_null_model</span><span class='op'>(</span>
+  <span class='va'>ts_dat</span>,
+  null_mod_seed <span class='op'>=</span> <span class='cn'>NULL</span>,
+  sim_index <span class='op'>=</span> <span class='cn'>NULL</span>,
+  begin_years <span class='op'>=</span> <span class='cn'>NULL</span>,
+  end_years <span class='op'>=</span> <span class='cn'>NULL</span>,
+  isd_seed <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      
-      
-    </tbody><tbody>
-      
-      
-      <tr>
-        
-        <td>
-          <p><code><a href="add_gmm.html">add_gmm()</a></code> </p>
-        </td>
-        <td><p>Add GMM density to an ISD</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="all_core_analyses.html">all_core_analyses()</a></code> </p>
-        </td>
-        <td><p>Run and collect all core analyses</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="compare_isds.html">compare_isds()</a></code> </p>
-        </td>
-        <td><p>Compute ISD turnover</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="compare_species_composition.html">compare_species_composition()</a></code> </p>
-        </td>
-        <td><p>Compare species composition</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="compute_raw_sv_change.html">compute_raw_sv_change()</a></code> </p>
-        </td>
-        <td><p>Compute raw change from the first five to the last five years</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="fit_all_caps_lms.html">fit_all_caps_lms()</a></code> </p>
-        </td>
-        <td><p>Fit linear models to the 5 state variables for the first and last 5 years ("caps")</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="fit_all_timeseries_lms.html">fit_all_timeseries_lms()</a></code> </p>
-        </td>
-        <td><p>Fit linear models to the 5 state variables for the full timeseries</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="fit_caps_lm.html">fit_caps_lm()</a></code> </p>
-        </td>
-        <td><p>Fit a lm to the first and last 5 years ("caps")</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="fit_gmm.html">fit_gmm()</a></code> </p>
-        </td>
-        <td><p>Fit a GMM</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="fit_timeseries_lm.html">fit_timeseries_lm()</a></code> </p>
-        </td>
-        <td><p>Fit a lm to the full timeseries</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_annual_svs.html">get_annual_svs()</a></code> </p>
-        </td>
-        <td><p>Calculate state variables for every year given ISDs</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="interaction_lms.html">interaction_lms()</a></code> </p>
-        </td>
-        <td><p>Interaction of sv change</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="local_null_model.html">local_null_model()</a></code> </p>
-        </td>
-        <td><p>Local null model</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="pull_caps.html">pull_caps()</a></code> </p>
-        </td>
-        <td><p>Pull first and last 5 years</p></td>
-      </tr>
-    </tbody>
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>ts_dat</th>
+      <td><p>a MATSS-shaped dataset</p></td>
+    </tr>
+    <tr>
+      <th>null_mod_seed</th>
+      <td><p>seed to use when reshuffling species. if none given will be drawn.</p></td>
+    </tr>
+    <tr>
+      <th>begin_years</th>
+      <td><p>to pass to all_core_analyses</p></td>
+    </tr>
+    <tr>
+      <th>end_years</th>
+      <td><p>to pass to all_core_analyses</p></td>
+    </tr>
+    <tr>
+      <th>isd_seed</th>
+      <td><p>to pass to all_core_analyses</p></td>
+    </tr>
     </table>
-  </div>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>results of all_core_analyses</p>
+
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
       <h2 data-toc-skip>Contents</h2>
