@@ -48,7 +48,7 @@ regional_null_model <- function(ts_dat, ranges_dat = NULL, null_mod_seed = NULL,
 
   results <- results %>%
     dplyr::mutate(
-      null_mod_type = "local",
+      null_mod_type = "regional",
       null_mod_seed = null_mod_seed,
       sim_index = sim_index,
       overlap_richness = overlap_rich,
