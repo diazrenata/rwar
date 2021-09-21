@@ -42,3 +42,24 @@ local_null_model <- function(ts_dat, null_mod_seed = NULL, sim_index = NULL, beg
 
   results
 }
+
+#' Wrapper for local null model
+#'
+#' @param ts_dat matss dataset
+#' @param nsims default 100
+#' @param begin_years pass
+#' @param end_years pass
+#'
+#' @return df
+#' @export
+#'
+#' @importFrom dplyr bind_rows
+local_null_model_wrapper <- function(ts_dat, nsims = 100, begin_years = NULL, end_years = NULL) {
+
+  repeated_nulls <- lapply(1:nsims, local_null_model, ts_dat = ts_dat, null_mod_seed = NULL, begin_years = begin_years, end_years = end_years, isd_seed = NULL)
+
+  results <- dplyr::bind_rows(repeated_nulls)
+
+  results
+
+}
