@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Interaction of sv change — interaction_lms • rwar</title>
+<title>Range scaling — rangescale • rwar</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Interaction of sv change — interaction_lms" />
-<meta property="og:description" content="Interaction of sv change" />
+<meta property="og:title" content="Range scaling — rangescale" />
+<meta property="og:description" content="Scale vector to (value - min(values)) / range(values)" />
 
 
 
@@ -103,33 +103,29 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Interaction of sv change</h1>
+    <h1>Range scaling</h1>
     
-    <div class="hidden name"><code>interaction_lms.Rd</code></div>
+    <div class="hidden name"><code>rangescale.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Interaction of sv change</p>
+    <p>Scale vector to (value - min(values)) / range(values)</p>
     </div>
 
-    <pre class="usage"><span class='fu'>interaction_lms</span><span class='op'>(</span><span class='va'>caps_svs</span>, scaling <span class='op'>=</span> <span class='st'>"sqrt"</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>rangescale</span><span class='op'>(</span><span class='va'>vect</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>caps_svs</th>
-      <td><p>caps_svs</p></td>
-    </tr>
-    <tr>
-      <th>scaling</th>
-      <td><p>"sqrt" or "rs". defaults to sqrt following Dornelas et al 2019</p></td>
+      <th>vect</th>
+      <td><p>vector</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>df</p>
+    <p>rescaled</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
