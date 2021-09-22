@@ -432,7 +432,15 @@ interaction_lms <- function(caps_svs, scaling = "sqrt") {
     tidyr::pivot_wider(names_from = coef_name, values_from = c("Estimate", "Std. Error", "t value", "Pr(>|t|)")) %>%
     dplyr::mutate(overall_p = cap_p,
                   overall_r2 = cap_lm_results$r.squared) %>%
-    cbind(cap_contrast_sig)
+    cbind(cap_contrast_sig) %>%
+    dplyr::mutate(
+      overall_sig = overall_p < .05,
+      any_slope_sig = any(cap_lm_ps[c(2,5,6),4] < .05),
+      currency_slopes_different = any(cap_lm_ps[c(5,6), 4] < .05)
+    ) %>%
+    dplyr::mutate(
+      change_sig = all(overall_sig, any_slope_sig)
+    )
 
   cap_lm_results_wide
 
@@ -456,17 +464,19 @@ all_core_analyses <- function(ts_comp, begin_years = NULL, end_years = NULL, isd
 
   ts_isd <- BBSsize::simulate_isd_ts(ts_comp, isd_seed = isd_seed)
   ts_svs <- get_annual_svs(ts_isd$isd)
-  ts_lms <- fit_all_timeseries_lms(ts_svs)
+  #ts_lms <- fit_all_timeseries_lms(ts_svs)
   caps_svs <- pull_caps(ts_svs, begin_years, end_years)
-  caps_lms <- fit_all_caps_lms(caps_svs)
+  #caps_lms <- fit_all_caps_lms(caps_svs)
   i_lms <- interaction_lms(caps_svs)
+  i_lms_rs <- interaction_lms(caps_svs, "rs")
+  colnames(i_lms_rs) <- paste0(colnames(i_lms_rs), "_rs")
   raw_ratios <-  compute_raw_sv_change(caps_svs)
   set.seed(1977)
   isd_turn <- compare_isds(ts_isd$isd, begin_years, end_years)
   comp_turn <- compare_species_composition(ts_comp, begin_years, end_years)
 
 
-  all_results <- dplyr::bind_cols(ts_lms, caps_lms, raw_ratios, i_lms, isd_turn, comp_turn, as.data.frame(ts_comp$metadata$location)) %>%
+  all_results <- dplyr::bind_cols( raw_ratios, i_lms, i_lms_rs, isd_turn, comp_turn, as.data.frame(ts_comp$metadata$location)) %>%
     dplyr::mutate(beginyears = toString(begin_years),
                   endyears = toString(end_years),
                   isd_seed = ts_isd$isd$isd_seed[1])
