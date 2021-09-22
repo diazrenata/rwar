@@ -4,10 +4,12 @@
 \alias{interaction_lms}
 \title{Interaction of sv change}
 \usage{
-interaction_lms(caps_svs)
+interaction_lms(caps_svs, scaling = "sqrt")
 }
 \arguments{
 \item{caps_svs}{caps_svs}
+
+\item{scaling}{"sqrt" or "rs". defaults to sqrt following Dornelas et al 2019}
 }
 \value{
 df

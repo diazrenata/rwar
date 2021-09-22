@@ -362,9 +362,29 @@ compare_species_composition <- function(ts_comp, begin_years = NULL, end_years =
 
 }
 
+#' Range scaling
+#'
+#' Scale vector to (value - min(values)) / range(values)
+#'
+#' @param vect vector
+#'
+#' @return rescaled
+#' @export
+#'
+rangescale <- function(vect) {
+
+  vectrange <- max(vect) - min(vect)
+
+  vect = (vect - min(vect)) / vectrange
+
+  vect
+
+}
+
 #' Interaction of sv change
 #'
 #' @param caps_svs caps_svs
+#' @param scaling "sqrt" or "rs". defaults to sqrt following Dornelas et al 2019
 #'
 #' @return df
 #' @export
@@ -372,23 +392,21 @@ compare_species_composition <- function(ts_comp, begin_years = NULL, end_years =
 #' @importFrom dplyr mutate filter
 #' @importFrom tidyr pivot_wider
 #' @importFrom emmeans emmeans
-interaction_lms <- function(caps_svs) {
+interaction_lms <- function(caps_svs, scaling = "sqrt") {
 
-  rangescale <- function(vect) {
-
-    vectrange <- max(vect) - min(vect)
-
-    vect = (vect - min(vect)) / vectrange
-
-    vect
-
+  if(scaling == "rs") {
+    caps_svs <- caps_svs %>%
+      dplyr::mutate(energy = rangescale((energy)),
+                    abundance = rangescale((abundance)),
+                    biomass = rangescale(biomass))
+  } else if(scaling == "sqrt") {
+    caps_svs <- caps_svs %>%
+      dplyr::mutate(energy = scale(sqrt(energy)),
+                    abundance = scale(sqrt(abundance)),
+                    biomass = scale(sqrt(biomass)))
+  } else {
+    stop("How to scale?")
   }
-
-  caps_svs <- caps_svs %>%
-    dplyr::mutate(energy = rangescale((energy)),
-                  abundance = rangescale((abundance)),
-                  biomass = rangescale(biomass))
-
   caps_long <- caps_svs %>%
     tidyr::pivot_longer(c(-year, -timeperiod), names_to = "currency", values_to = "val")%>%
     dplyr::filter(currency %in% c("energy", "abundance", "biomass"))
@@ -407,6 +425,7 @@ interaction_lms <- function(caps_svs) {
     tidyr::pivot_wider(names_from = currency, values_from = p.value, names_glue = "{currency}_contrast{.value}")
 
   cap_p <- pf(cap_lm_results$fstatistic[1], cap_lm_results$fstatistic[2], cap_lm_results$fstatistic[3], lower.tail = F)
+
   cap_lm_results_wide <- cap_lm_ps %>%
     as.data.frame() %>%
     dplyr::mutate(coef_name = row.names(.)) %>%
@@ -419,6 +438,7 @@ interaction_lms <- function(caps_svs) {
 
 
 }
+
 
 #' Run and collect all core analyses
 #'

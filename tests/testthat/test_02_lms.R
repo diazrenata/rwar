@@ -1,8 +1,9 @@
 library(BBSsize)
 
-h <- BBSsize::hartland
+h <- BBSsize::granby
 h_isd <- BBSsize::simulate_isd_ts(h, isd_seed = 1977)
 h_svs <- get_annual_svs(h_isd$isd)
+h_caps_svs <- pull_caps(h_svs, 1988:1992, 2014:2018)
 
 test_that("lm on full timeseries works", {
 
@@ -20,7 +21,7 @@ test_that("lm on full timeseries works", {
 
   abund_slope <- abund_coefs["year"]
 
-  abund_fitted_ratio <- abund_lm$fitted.values[25] / abund_lm$fitted.values[1]
+  abund_fitted_ratio <- abund_lm$fitted.values[18] / abund_lm$fitted.values[1]
 
   expect_true(abund_p == ts_lm$p_ts_abundance)
   expect_true(abund_r2 == ts_lm$r2_ts_abundance)
@@ -61,5 +62,63 @@ test_that("lm on caps works", {
   expect_false(anyNA(caps_lm))
   expect_false(any(caps_lm[,1:5] > 1) )
   expect_false(any(caps_lm[,1:5] < 0) )
+
+})
+
+
+
+test_that("rangescale works as intended", {
+
+  rs <- rangescale(h_caps_svs$abundance)
+
+  expect_true(min(rs) == 0)
+  expect_true(max(rs) == 1)
+  expect_false(anyNA(rs))
+
+})
+
+
+test_that("interaction lm works as intended", {
+
+  expect_error(interaction_lms(h_caps_svs, scaling = "blah"))
+
+  ilm <- interaction_lms(h_caps_svs)
+
+  h_scaled <- h_caps_svs %>%
+    dplyr::mutate(
+      abundance = scale(sqrt(abundance)),
+      biomass = scale(sqrt(biomass)),
+      energy = scale(sqrt(energy))
+    )
+
+  expect_equivalent(mean(h_scaled$energy), 0)
+  expect_equivalent(sd(h_scaled$energy), 1)
+
+  h_scaled_long <- h_scaled %>%
+    tidyr::pivot_longer(c(-year, -timeperiod), names_to = "currency", values_to = "val")%>%
+    dplyr::filter(currency %in% c("energy", "abundance", "biomass"))
+
+  h_scaled_energy <- dplyr::filter(h_scaled_long, currency == "energy")
+  expect_true(all(h_scaled_energy$val == h_scaled$energy))
+
+  h_ilm <- lm(val ~ timeperiod * currency, h_scaled_long)
+
+  h_ilm_coef <- summary(h_ilm)$coefficients %>% as.data.frame()
+
+  expect_true(all((h_ilm_coef$`Pr(>|t|)`) > .1))
+
+  expect_true(h_ilm_coef$Estimate[1] == ilm$`Estimate_(Intercept)`)
+  expect_true(h_ilm_coef$Estimate[5] == ilm$`Estimate_timeperiodend:currencybiomass`)
+
+  expect_true(h_ilm_coef$`Pr(>|t|)`[1] == ilm$`Pr(>|t|)_(Intercept)`)
+  expect_true(h_ilm_coef$`Pr(>|t|)`[5] == ilm$`Pr(>|t|)_timeperiodend:currencybiomass`)
+
+  h_ilm_summary <- summary(h_ilm)
+
+  expect_true(h_ilm_summary$r.squared == ilm$overall_r2)
+
+  h_ilm_contrasts <- as.data.frame(pairs(emmeans::emmeans(h_ilm, ~ timeperiod | currency)))
+
+  expect_true(h_ilm_contrasts$p.value[1] == ilm$abundance_contrastp.value)
 
 })
