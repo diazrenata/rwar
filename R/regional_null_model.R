@@ -1,3 +1,42 @@
+#' Shuffle species for regional null model
+#'
+#' @param ts_dat matss-style
+#' @param ranges_dat ranges
+#' @param null_mod_seed or null
+#'
+#' @return matss-style with additional metadata
+#' @export
+#'
+#' @importFrom dplyr left_join
+shuffle_regional <- function(ts_dat, ranges_dat, null_mod_seed) {
+
+  ts_locationdat <- ts_dat$metadata$location
+
+  ts_speciesoverlap <- dplyr::left_join(ts_locationdat, ranges_dat)
+
+  overlapping_spp <- ts_speciesoverlap$id
+  encountered_spp <- ts_dat$metadata$species_table$id
+  all_ts_spp = c(overlapping_spp, encountered_spp) %>% unique()
+
+  overlap_rich = length(overlapping_spp)
+  encountered_rich = length(encountered_spp)
+  overlap_not_in_encountered = sum(!(overlapping_spp %in% encountered_spp))
+
+  set.seed(null_mod_seed)
+
+  shuffled_species <- sample(all_ts_spp, size = (encountered_rich), replace = F)
+
+  shuffled_dat <- ts_dat
+
+  colnames(shuffled_dat$abundance) <- shuffled_species
+
+  shuffled_dat$metadata$regional_pool <- list(overlap_rich = overlap_rich,
+                                              encountered_rich = encountered_rich,
+                                              overlap_not_in_encountered = overlap_not_in_encountered)
+
+  return(shuffled_dat)
+}
+
 #' Regional null model
 #'
 #' Reassign species IDs using all species whose ranges overlap a route, or were ever observed on that route.
@@ -24,25 +63,8 @@ regional_null_model <- function(ts_dat, ranges_dat = NULL, null_mod_seed = NULL,
     null_mod_seed <- sample.int(1000000000, 1)
   }
 
-  ts_locationdat <- ts_dat$metadata$location
 
-  ts_speciesoverlap <- dplyr::left_join(ts_locationdat, ranges_dat)
-
-  overlapping_spp <- ts_speciesoverlap$id
-  encountered_spp <- ts_dat$metadata$species_table$id
-  all_ts_spp = c(overlapping_spp, encountered_spp) %>% unique()
-
-  overlap_rich = length(overlapping_spp)
-  encountered_rich = length(encountered_spp)
-  overlap_not_in_encountered = sum(!(overlapping_spp %in% encountered_spp))
-
-  set.seed(null_mod_seed)
-
-  shuffled_species <- sample(all_ts_spp, size = (encountered_rich), replace = F)
-
-  shuffled_dat <- ts_dat
-
-  colnames(shuffled_dat$abundance) <- shuffled_species
+  shuffled_dat <- shuffle_regional(ts_dat = ts_dat, ranges_dat = ranges_dat, null_mod_seed = null_mod_seed)
 
   results <- all_core_analyses(shuffled_dat, begin_years, end_years, isd_seed)
 
@@ -51,9 +73,9 @@ regional_null_model <- function(ts_dat, ranges_dat = NULL, null_mod_seed = NULL,
       null_mod_type = "regional",
       null_mod_seed = null_mod_seed,
       sim_index = sim_index,
-      overlap_richness = overlap_rich,
-      local_richness = encountered_rich,
-      regionally_added = overlap_not_in_encountered
+      overlap_richness = shuffled_dat$metadata$overlap_rich,
+      local_richness = shuffled_dat$metadata$encountered_rich,
+      regionally_added = shuffled_dat$metadata$overlap_not_in_encountered
     )
 
 
