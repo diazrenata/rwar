@@ -1,3 +1,27 @@
+#' Perform species shuffling for local null model
+#'
+#' @param ts_dat matss-style
+#' @param null_mod_seed or null
+#'
+#' @return matss-style, but shuffled
+#' @export
+#'
+shuffle_local <- function(ts_dat, null_mod_seed = NULL) {
+
+
+  orig_species <- colnames(ts_dat$abundance)
+
+  set.seed(null_mod_seed)
+
+  shuffled_species <- sample(orig_species, size = length(orig_species), replace = F)
+
+  shuffled_dat <- ts_dat
+
+  colnames(shuffled_dat$abundance) <- shuffled_species
+
+  return(shuffled_dat)
+}
+
 #' Local null model
 #'
 #' Reassign species IDs using all species ever observed on a single route.
@@ -19,16 +43,7 @@ local_null_model <- function(ts_dat, null_mod_seed = NULL, sim_index = NULL, beg
     null_mod_seed <- sample.int(1000000000, 1)
   }
 
-
-  orig_species <- colnames(ts_dat$abundance)
-
-  set.seed(null_mod_seed)
-
-  shuffled_species <- sample(orig_species, size = length(orig_species), replace = F)
-
-  shuffled_dat <- ts_dat
-
-  colnames(shuffled_dat$abundance) <- shuffled_species
+  shuffled_dat <- shuffle_local(ts_dat = ts_dat, null_mod_seed = null_mod_seed)
 
   results <- all_core_analyses(shuffled_dat, begin_years, end_years, isd_seed)
 
