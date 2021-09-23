@@ -21,7 +21,7 @@ regional_null_model(
 
 \item{null_mod_seed}{seed to use when reshuffling species. if none given will be drawn.}
 
-\item{sim_index}{sim index}
+\item{sim_index}{sim index to track}
 
 \item{begin_years}{to pass to all_core_analyses}
 

@@ -28,7 +28,7 @@ shuffle_continental <- function(ts_dat, null_mod_seed) {
 #'
 #' @param ts_dat a MATSS-shaped dataset
 #' @param null_mod_seed seed to use when reshuffling species. if none given will be drawn.
-#' @param sim_index sim index
+#' @param sim_index sim index to track
 #' @param begin_years to pass to all_core_analyses
 #' @param end_years to pass to all_core_analyses
 #' @param isd_seed to pass to all_core_analyses
