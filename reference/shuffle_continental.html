@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Local null model — local_null_model • rwar</title>
+<title>Shuffle species for continental null model — shuffle_continental • rwar</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Local null model — local_null_model" />
-<meta property="og:description" content="Reassign species IDs using all species ever observed on a single route." />
+<meta property="og:title" content="Shuffle species for continental null model — shuffle_continental" />
+<meta property="og:description" content="Shuffle species for continental null model" />
 
 
 
@@ -103,56 +103,33 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Local null model</h1>
+    <h1>Shuffle species for continental null model</h1>
     
-    <div class="hidden name"><code>local_null_model.Rd</code></div>
+    <div class="hidden name"><code>shuffle_continental.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Reassign species IDs using all species ever observed on a single route.</p>
+    <p>Shuffle species for continental null model</p>
     </div>
 
-    <pre class="usage"><span class='fu'>local_null_model</span><span class='op'>(</span>
-  <span class='va'>ts_dat</span>,
-  null_mod_seed <span class='op'>=</span> <span class='cn'>NULL</span>,
-  sim_index <span class='op'>=</span> <span class='cn'>NULL</span>,
-  begin_years <span class='op'>=</span> <span class='cn'>NULL</span>,
-  end_years <span class='op'>=</span> <span class='cn'>NULL</span>,
-  isd_seed <span class='op'>=</span> <span class='cn'>NULL</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>shuffle_continental</span><span class='op'>(</span><span class='va'>ts_dat</span>, <span class='va'>null_mod_seed</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>ts_dat</th>
-      <td><p>a MATSS-shaped dataset</p></td>
+      <td><p>matss sytle</p></td>
     </tr>
     <tr>
       <th>null_mod_seed</th>
-      <td><p>seed to use when reshuffling species. if none given will be drawn.</p></td>
-    </tr>
-    <tr>
-      <th>sim_index</th>
-      <td><p>sim index</p></td>
-    </tr>
-    <tr>
-      <th>begin_years</th>
-      <td><p>to pass to all_core_analyses</p></td>
-    </tr>
-    <tr>
-      <th>end_years</th>
-      <td><p>to pass to all_core_analyses</p></td>
-    </tr>
-    <tr>
-      <th>isd_seed</th>
-      <td><p>to pass to all_core_analyses</p></td>
+      <td><p>seed</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>results of all_core_analyses</p>
+    <p>shuffled</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
