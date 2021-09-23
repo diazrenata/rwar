@@ -24,8 +24,7 @@ test_that("svs works", {
   expect_true(all(h_svs$abundance == rowSums(h$abundance)))
   expect_true((h_svs$biomass[1]) == sum((dplyr::filter(h_isd$isd, year == 1994)$mass)))
   expect_true((h_svs$energy[1]) == sum(BBSsize::estimate_b(dplyr::filter(h_isd$isd, year == 1994)$mass)))
-  expect_true(floor(h_svs$energy[1]) == 94302)
-  expect_true(floor(h_svs$biomass[1]) == 36982)
+
   expect_true(all(floor(h_svs$mean_energy) == floor(h_svs$energy/h_svs$abundance)))
   expect_true(all(floor(h_svs$mean_biomass) == floor(h_svs$biomass/h_svs$abundance)))
 

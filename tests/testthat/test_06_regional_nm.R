@@ -18,12 +18,20 @@ test_that("regional nm matches species and differs size", {
 )
 
 
-test_that("local shuffle matches manual shuffle", {
+test_that("regional shuffle matches manual shuffle", {
 
   null_shuffle <- shuffle_regional(h, ranges, 1994)
 
+  regional_pool <- dplyr::filter(ranges, statenum == h$metadata$location$statenum, route == h$metadata$location$route)$id
+
+  locally_encountered <- colnames(h$abundance)
+
+  full_pool <- c(regional_pool, locally_encountered) %>% unique()
+
   set.seed(1994)
-  manual_shuffle <- sample(colnames(h$abundance), size = length(colnames(h$abundance)), replace = F)
+
+  manual_shuffle <- sample(full_pool, length(colnames(h$abundance)), replace = F)
+
   manual_dat <- h
   colnames(manual_dat$abundance) <- manual_shuffle
 
@@ -34,13 +42,14 @@ test_that("local shuffle matches manual shuffle", {
   }
 )
 
-test_that("local wrapper works as intended", {
+test_that("regional wrapper works as intended", {
 
-  several_null <- local_null_model_wrapper(h, 3, 1988:1992, 2014:2018)
+  several_null <- regional_null_model_wrapper(h, ranges, 3, 1988:1992, 2014:2018)
 
   expect_equal(length(unique(several_null$isd_seed)), 3)
   expect_equal(length(unique(several_null$null_mod_seed)), 3)
   expect_equal(length(unique(several_null$sp_turnover)), 1)
+  expect_equal(length(unique(several_null$regionally_added)), 1)
   expect_equal(length(unique(several_null$isd_turnover)), 3)
 
 }

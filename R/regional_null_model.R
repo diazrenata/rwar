@@ -73,9 +73,9 @@ regional_null_model <- function(ts_dat, ranges_dat = NULL, null_mod_seed = NULL,
       null_mod_type = "regional",
       null_mod_seed = null_mod_seed,
       sim_index = sim_index,
-      overlap_richness = shuffled_dat$metadata$overlap_rich,
-      local_richness = shuffled_dat$metadata$encountered_rich,
-      regionally_added = shuffled_dat$metadata$overlap_not_in_encountered
+      overlap_richness = shuffled_dat$metadata$regional_pool$overlap_rich,
+      local_richness = shuffled_dat$metadata$regional_pool$encountered_rich,
+      regionally_added = shuffled_dat$metadata$regional_pool$overlap_not_in_encountered
     )
 
 
