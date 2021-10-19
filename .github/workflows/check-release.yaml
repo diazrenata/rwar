@@ -6,6 +6,7 @@ on:
       - main
       - master
       - refact
+      - resim
   pull_request:
     branches:
       - main
