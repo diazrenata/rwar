@@ -2,18 +2,30 @@ Package: rwar
 Type: Package
 Title: RedWing Analyses in R
 Version: 0.1.0
-Author: Renata M. Diaz
-Maintainer: Renata M. Diaz <renata.diaz@weecology.org>
-Description: Functions to support analyses in diazrenata/redwing.
+Authors@R: c(
+    person(c("Renata", "M."), "Diaz",
+        email = "renata.diaz@weecology.org", role = c("aut", "cre"), comment = c(ORCID = "0000-0003-0803-4734")))
+Maintainer: Renata Diaz <renata.diaz@weecology.org>
+Description: Functions to support analyses in diazrenata/redwing (BBS ISDs).
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports: 
+    BBSsize,
     dplyr,
+    emmeans,
     tidyr,
     tidyselect,
     portalr,
-    magrittr
-
+    magrittr,
+    mclust,
+    vegan
+Suggests:
+    covr,
+    testthat
+Remotes: 
+    diazrenata/BBSsize@dev
+Depends: 
+    R (>= 2.10)
