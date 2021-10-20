@@ -14,7 +14,7 @@ draw_individuals(nind, sampling_gmm, draw_seed = NULL)
 \item{draw_seed}{don't recommmend providing}
 }
 \value{
-dataframe of drawn (log) body masses, and metainfo for whether the sampling gmm is from begin or end and the seed used when drawing
+drawn (log) body masses, and metainfo for whether the sampling gmm is from begin or end and the seed used when drawing
 }
 \description{
 Draw individual body masses from a GMM density function for the ISD

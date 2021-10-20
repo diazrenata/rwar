@@ -30,7 +30,7 @@ draw_communities(
 \item{raw_isd_seed}{don't provide unless you have a reason to}
 }
 \value{
-
+df of sim inds
 }
 \description{
 High-level fxn to get yearly estimates for the state variables under the scenarios of 1) the ISD is conserved begin-end and 2) the ISD changes begin-end. A way to partition change in biomass or energy use expected given changes in abundance and sampling variation, and changes that must be partially driven by changes in the size shift.

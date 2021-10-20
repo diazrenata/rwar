@@ -33,7 +33,7 @@ draw_communities_wrapper(
 \item{raw_isd_seed}{don't provide unless you have a reason to}
 }
 \value{
-dataframe of sims
+sims
 }
 \description{
 To facilitate pipelines. Just runs draw_communities \code{ndraws} times and tacks on a column keeping track of which sim.

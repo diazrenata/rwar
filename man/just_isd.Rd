@@ -12,7 +12,7 @@ just_isd(ts_comp, isd_seed = NULL)
 \item{isd_seed}{can provide, to standardize results (e.g. for testing). if not provided, one will be drawn randomly and kept track of so you can replicate later.}
 }
 \value{
-dataframe of isd
+isd
 }
 \description{
 Tiny wrapper for \code{BBSsize::simulate_isd_ts} to get just the ISD component of that output.
