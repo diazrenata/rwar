@@ -342,12 +342,26 @@ draws_df <- function(some_draws) {
 get_draw_qis <- function(some_draws) {
 
   te_qis <- some_draws$te_draws %>%
-    tidybayes::median_qi(b_sourcecurrency, b_timeperiodend, `b_timeperiodend:sourcecurrency`, currency_slope =  `b_timeperiodend:sourcecurrency` + b_timeperiodend, relative_offset =  `b_timeperiodend:sourcecurrency` / b_timeperiodend, .width = c(.99, .95, .8)) %>%
+    tidybayes::median_qi(currency_intercept = b_sourcecurrency,
+                         abundance_slope = b_timeperiodend,
+                         currency_offset = `b_timeperiodend:sourcecurrency`,
+                         currency_slope =  `b_timeperiodend:sourcecurrency` + b_timeperiodend,
+                         currency_slope_scaled = (`b_timeperiodend:sourcecurrency` + b_timeperiodend) / b_Intercept,
+                         abundance_slope_scaled = (`b_timeperiodend`) / b_Intercept,
+                         currency_offset_scaled = (`b_timeperiodend:sourcecurrency`) / b_Intercept,
+                         .width = c(.99, .95, .8)) %>%
     dplyr::mutate(currency = "energy")
 
 
   tb_qis <- some_draws$tb_draws %>%
-    tidybayes::median_qi(b_sourcecurrency, b_timeperiodend, `b_timeperiodend:sourcecurrency`, currency_slope =  `b_timeperiodend:sourcecurrency` + b_timeperiodend, relative_offset =  `b_timeperiodend:sourcecurrency` / b_timeperiodend, .width = c(.99, .95, .8)) %>%
+    tidybayes::median_qi(currency_intercept = b_sourcecurrency,
+                         abundance_slope = b_timeperiodend,
+                         currency_offset = `b_timeperiodend:sourcecurrency`,
+                         currency_slope =  `b_timeperiodend:sourcecurrency` + b_timeperiodend,
+                         currency_slope_scaled = (`b_timeperiodend:sourcecurrency` + b_timeperiodend) / b_Intercept,
+                         abundance_slope_scaled = (`b_timeperiodend`) / b_Intercept,
+                         currency_offset_scaled = (`b_timeperiodend:sourcecurrency`) / b_Intercept,
+                         .width = c(.99, .95, .8)) %>%
    dplyr::mutate(currency = "biomass")
 
   qis <- dplyr::bind_rows(te_qis, tb_qis) %>%
