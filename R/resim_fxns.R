@@ -288,4 +288,48 @@ fit_brms <- function(some_sims, cores = 1, iter = 8000, thin =2) {
 }
 
 
+#' Extract draws from brms
+#'
+#' @param some_brms list with $te_brm, $tb_brm, $matssname
+#'
+#' @return list with $te_draws, $tb_draws, $matssname
+#' @export
+#'
+#' @importFrom tidybayes tidy_draws
+get_brm_draws <- function(some_brms) {
 
+ te_draws <- tidybayes::tidy_draws(some_brms$te_brm)
+ tb_draws <- tidybayes::tidy_draws(some_brms$tb_brm)
+
+ return(list(
+   te_draws = te_draws,
+   tb_draws = tb_draws,
+   matssname = some_brms$matssname
+ )
+)
+
+}
+
+#' Get QIs for draws
+#'
+#' @param some_draws list with te_draws, tb_draws, matssname
+#'
+#' @return dataframe of qis
+#' @export
+#'
+#' @importFrom tidybayes median_qi
+#' @importFrom dplyr mutate
+get_draw_qis <- function(some_draws) {
+
+  te_qis <- some_draws$te_draws %>%
+    tidybayes::median_qi(b_sourcecurrency, b_timeperiodend, `b_timeperiodend:sourcecurrency`, currency_slope =  `b_timeperiodend:sourcecurrency` + b_timeperiodend, relative_offset =  `b_timeperiodend:sourcecurrency` / b_timeperiodend, .width = c(.99, .95, .8)) %>%
+    dplyr::mutate(currency = "energy")
+
+
+  tb_qis <- some_draws$tb_draws %>%
+    tidybayes::median_qi(b_sourcecurrency, b_timeperiodend, `b_timeperiodend:sourcecurrency`, currency_slope =  `b_timeperiodend:sourcecurrency` + b_timeperiodend, relative_offset =  `b_timeperiodend:sourcecurrency` / b_timeperiodend, .width = c(.99, .95, .8)) %>%
+   dplyr::mutate(currency = "biomass")
+
+  qis <- dplyr::bind_rows(te_qis, tb_qis) %>%
+    dplyr::mutate(matssname = some_draws$matssname)
+}
