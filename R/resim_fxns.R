@@ -310,6 +310,26 @@ get_brm_draws <- function(some_brms) {
 
 }
 
+#' Get draws as a dataframe
+#'
+#' @param some_draws from get_brm_draws
+#'
+#' @return some_draws as a df
+#' @export
+#' @importFrom dplyr mutate bind_rows
+draws_df <- function(some_draws) {
+
+  te_draws <- some_draws$te_draws %>%
+    dplyr::mutate(currency = "energy")
+
+  tb_draws <- some_draws$tb_draws %>%
+    dplyr::mutate(currency = "biomass")
+
+  return(dplyr::bind_rows(te_draws, tb_draws) %>%
+           dplyr::mutate(matssname = some_draws$matssname))
+
+}
+
 #' Get QIs for draws
 #'
 #' @param some_draws list with te_draws, tb_draws, matssname
