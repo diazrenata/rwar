@@ -259,12 +259,12 @@ draw_communities_wrapper <- function(ts_comp, begin_years = 1988:1992, end_years
 #' @importFrom brms brm
 #' @importFrom dplyr filter
 fit_brms <- function(some_sims, cores = 1, iter = 8000, thin =2) {
-
-  # something in rwar as I currently have it is locking the namespace and interfering with drake, at least locally. this is not my best work but it gets rwar out of the namespace if it's attached.
-  is_rwar_attached = any(grepl("rwar", names(sessionInfo()[7]$otherPkgs)))
-  if(is_rwar_attached) {
-    detach("package:rwar", unload = T)
-  }
+#
+#   # something in rwar as I currently have it is locking the namespace and interfering with drake, at least locally. this is not my best work but it gets rwar out of the namespace if it's attached.
+#   is_rwar_attached = any(grepl("rwar", names(sessionInfo()[7]$otherPkgs)))
+#   if(is_rwar_attached) {
+#     detach("package:rwar", unload = T)
+#   }
 
   # sims returns estimates of the raw values, which we don't want for the model fit (we jsut want the ones that come from drawing from the densityGMMS)
   justsims <- dplyr::filter(some_sims, source %in% c("currency", "abundance")) # remove raw
@@ -366,4 +366,248 @@ get_draw_qis <- function(some_draws) {
 
   qis <- dplyr::bind_rows(te_qis, tb_qis) %>%
     dplyr::mutate(matssname = some_draws$matssname)
+}
+
+
+
+#' Fit multiple candidate brms
+#'
+#' @param some_sims dataframe with columns matssname, timeperiod, source, year, total_energy, total_biomass
+#' @param cores how many cores to use. if on hpg, use ONE. if local, do what you want.
+#' @param iter how many iterations. at scale, I've been using 4000 to be generous.
+#'
+#' @return list of brm fit on total_energy, on total_biomass, and dataset name
+#' @export
+#'
+#' @importFrom brms brm
+#' @importFrom dplyr filter
+fit_brms2 <- function(some_sims, cores = 1, iter = 8000, thin =2) {
+
+  # # something in rwar as I currently have it is locking the namespace and interfering with drake, at least locally. this is not my best work but it gets rwar out of the namespace if it's attached.
+  # is_rwar_attached = any(grepl("rwar", names(sessionInfo()[7]$otherPkgs)))
+  # if(is_rwar_attached) {
+  #   detach("package:rwar", unload = T)
+  # }
+
+  # sims returns estimates of the raw values, which we don't want for the model fit (we jsut want the ones that come from drawing from the densityGMMS)
+  justsims <- dplyr::filter(some_sims, source %in% c("currency", "abundance")) # remove raw
+
+
+  # Fit a brm on total_energy
+  te_brm_full <- brms::brm(total_energy ~ (timeperiod * source) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
+  te_brm_intercept <- brms::brm(total_energy ~ (timeperiod + source) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
+  te_brm_nosource <- brms::brm(total_energy ~ (timeperiod) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
+  te_brm_notime <- brms::brm(total_energy ~ 1, data = justsims, cores = cores, iter = iter, thin = thin)
+
+  te_brms = list(
+    te_brm_full = te_brm_full,
+    te_brm_intercept = te_brm_intercept,
+    te_brm_nosource = te_brm_nosource,
+    te_brm_notime = te_brm_notime
+  )
+
+
+  # Fit the brm on total_biomass
+  tb_brm_full <- brms::brm(total_biomass ~ (timeperiod * source) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
+  tb_brm_intercept <- brms::brm(total_biomass ~ (timeperiod + source) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
+  tb_brm_nosource <- brms::brm(total_biomass ~ (timeperiod) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
+  tb_brm_notime <- brms::brm(total_biomass ~ 1 , data = justsims, cores = cores, iter = iter, thin = thin)
+
+
+
+  tb_brms = list(
+    tb_brm_full = tb_brm_full,
+    tb_brm_intercept = tb_brm_intercept,
+    tb_brm_nosource = tb_brm_nosource,
+    tb_brm_notime = tb_brm_notime
+  )
+
+
+  # keep track of what dataset this is
+  md <- some_sims$matssname[1]
+
+  return(list(
+    te_brms = te_brms,
+    tb_brms = tb_brms,
+    matssname =md
+  ))
+
+}
+
+#' LOO compare on brms
+#'
+#' @param brms_fits for one currency
+#'
+#' @return a dataframe of results from loo_compare
+#' @export
+#'
+#' @importFrom brms add_criterion loo_compare
+#' @importFrom dplyr mutate row_number
+compare_brms <- function(brms_fits) {
+
+  brms_fits <- lapply(brms_fits, brms::add_criterion, criterion  = "loo")
+
+  brms_comparison <- brms::loo_compare(brms_fits[[1]], brms_fits[[2]],brms_fits[[3]], brms_fits[[4]], model_names = names(brms_fits)) %>%
+    as.data.frame() %>%
+    dplyr::mutate(model = row.names(.),
+                  rank = dplyr::row_number())
+
+  return(brms_comparison)
+
+}
+
+#' Pull comparisons for two sets of brms
+#'
+#' @param some_brms_fits a list
+#'
+#' @return a dataframe
+#' @export
+#'
+#' @importFrom dplyr bind_rows mutate
+compare_both_brms <- function(some_brms_fits) {
+
+  biomass <- compare_brms(some_brms_fits$tb_brms)
+  energy <- compare_brms(some_brms_fits$te_brms)
+
+  both_comparisons <- dplyr::bind_rows(biomass = biomass, energy = energy, .id = "currency") %>%
+    dplyr::mutate(matssname = some_brms_fits$matssname)
+
+
+  return(both_comparisons)
+
+}
+
+#' Fit multiple candidate brms
+#'
+#' @param some_sims dataframe with columns matssname, timeperiod, source, year, total_energy, total_biomass
+#' @param cores how many cores to use. if on hpg, use ONE. if local, do what you want.
+#' @param iter how many iterations. at scale, I've been using 4000 to be generous.
+#'
+#' @return list of brm fit on total_energy, on total_biomass, and dataset name
+#' @export
+#'
+#' @importFrom brms brm
+#' @importFrom dplyr filter
+fit_brms3 <- function(some_sims, cores = 1, iter = 8000, thin =2) {
+
+  # # something in rwar as I currently have it is locking the namespace and interfering with drake, at least locally. this is not my best work but it gets rwar out of the namespace if it's attached.
+  # is_rwar_attached = any(grepl("rwar", names(sessionInfo()[7]$otherPkgs)))
+  # if(is_rwar_attached) {
+  #   detach("package:rwar", unload = T)
+  # }
+
+  # sims returns estimates of the raw values, which we don't want for the model fit (we jsut want the ones that come from drawing from the densityGMMS)
+  justsims <- dplyr::filter(some_sims, source %in% c("currency", "abundance")) # remove raw
+
+
+  # Fit a brm on total_energy
+  te_brm_full <- brms::brm(total_energy ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin)
+  te_brm_intercept <- brms::brm(total_energy ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
+  te_brm_nosource <- brms::brm(total_energy ~ (timeperiod) , data = justsims, cores = cores, iter = iter, thin = thin)
+  te_brm_notime <- brms::brm(total_energy ~ 1, data = justsims, cores = cores, iter = iter, thin = thin)
+
+  te_brms = list(
+    te_brm_full = te_brm_full,
+    te_brm_intercept = te_brm_intercept,
+    te_brm_nosource = te_brm_nosource,
+    te_brm_notime = te_brm_notime
+  )
+
+
+  # Fit the brm on total_biomass
+  tb_brm_full <- brms::brm(total_biomass ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin)
+  tb_brm_intercept <- brms::brm(total_biomass ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
+  tb_brm_nosource <- brms::brm(total_biomass ~ (timeperiod) , data = justsims, cores = cores, iter = iter, thin = thin)
+  tb_brm_notime <- brms::brm(total_biomass ~ 1 , data = justsims, cores = cores, iter = iter, thin = thin)
+
+
+
+  tb_brms = list(
+    tb_brm_full = tb_brm_full,
+    tb_brm_intercept = tb_brm_intercept,
+    tb_brm_nosource = tb_brm_nosource,
+    tb_brm_notime = tb_brm_notime
+  )
+
+
+  # keep track of what dataset this is
+  md <- some_sims$matssname[1]
+
+  return(list(
+    te_brms = te_brms,
+    tb_brms = tb_brms,
+    matssname =md
+  ))
+
+}
+
+#' Fit multiple candidate brms
+#'
+#' fits on ANNUAL MEANS PER CURRENCY with NO RANDOM FACTOR.
+#'
+#' @param some_sims dataframe with columns matssname, timeperiod, source, year, total_energy, total_biomass
+#' @param cores how many cores to use. if on hpg, use ONE. if local, do what you want.
+#' @param iter how many iterations. at scale, I've been using 4000 to be generous.
+#'
+#' @return list of brm fit on total_energy, on total_biomass, and dataset name
+#' @export
+#'
+#' @importFrom brms brm
+#' @importFrom dplyr filter
+fit_brms3 <- function(some_sims, cores = 1, iter = 8000, thin =2) {
+
+  # # something in rwar as I currently have it is locking the namespace and interfering with drake, at least locally. this is not my best work but it gets rwar out of the namespace if it's attached.
+  # is_rwar_attached = any(grepl("rwar", names(sessionInfo()[7]$otherPkgs)))
+  # if(is_rwar_attached) {
+  #   detach("package:rwar", unload = T)
+  # }
+
+  # sims returns estimates of the raw values, which we don't want for the model fit (we jsut want the ones that come from drawing from the densityGMMS)
+  justsims <- dplyr::filter(some_sims, source %in% c("currency", "abundance")) # remove raw
+
+  justsims <- justsims %>%
+    dplyr::group_by(year, source, timeperiod) %>%
+    dplyr::summarize(total_energy = mean(total_energy),
+                     total_biomass = mean(total_biomass)) %>%
+    dplyr::ungroup()
+
+  # Fit a brm on total_energy
+  te_brm_full <- brms::brm(total_energy ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin)
+  te_brm_intercept <- brms::brm(total_energy ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
+  te_brm_nosource <- brms::brm(total_energy ~ (timeperiod) , data = justsims, cores = cores, iter = iter, thin = thin)
+  te_brm_notime <- brms::brm(total_energy ~ 1, data = justsims, cores = cores, iter = iter, thin = thin)
+
+  te_brms = list(
+    te_brm_full = te_brm_full,
+    te_brm_intercept = te_brm_intercept,
+    te_brm_nosource = te_brm_nosource,
+    te_brm_notime = te_brm_notime
+  )
+
+
+  # Fit the brm on total_biomass
+  tb_brm_full <- brms::brm(total_biomass ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin)
+  tb_brm_intercept <- brms::brm(total_biomass ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
+  tb_brm_nosource <- brms::brm(total_biomass ~ (timeperiod) , data = justsims, cores = cores, iter = iter, thin = thin)
+  tb_brm_notime <- brms::brm(total_biomass ~ 1 , data = justsims, cores = cores, iter = iter, thin = thin)
+
+
+
+  tb_brms = list(
+    tb_brm_full = tb_brm_full,
+    tb_brm_intercept = tb_brm_intercept,
+    tb_brm_nosource = tb_brm_nosource,
+    tb_brm_notime = tb_brm_notime
+  )
+
+
+  # keep track of what dataset this is
+  md <- some_sims$matssname[1]
+
+  return(list(
+    te_brms = te_brms,
+    tb_brms = tb_brms,
+    matssname =md
+  ))
+
 }
