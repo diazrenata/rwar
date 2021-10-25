@@ -471,7 +471,7 @@ compare_both_brms <- function(some_brms_fits) {
 
   both_comparisons <- dplyr::bind_rows(biomass = biomass, energy = energy, .id = "currency") %>%
     dplyr::mutate(matssname = some_brms_fits$matssname,
-                  simtype = some_brms_fits$simtype)
+                  simtype = some_brms_fits$simtype[1])
 
 
   return(both_comparisons)
@@ -547,7 +547,7 @@ fit_brms3 <- function(some_sims, cores = 1, iter = 8000, thin =2) {
     te_brms = te_brms,
     tb_brms = tb_brms,
     matssname =md,
-    simtype = some_sims$simtype
+    simtype = some_sims$simtype[1]
   ))
 
 }
