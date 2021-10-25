@@ -532,8 +532,8 @@ fit_brms3 <- function(some_sims, cores = 1, iter = 8000, thin =2) {
 
   tb_brms = list(
     tb_brm_full = tb_brm_full,
-    tb_brm_intercept = tb_brm_intercept,
-   # tb_brm_nosource = tb_brm_nosource,
+    #tb_brm_intercept = tb_brm_intercept,
+    tb_brm_nosource = tb_brm_nosource,
     tb_brm_notime = tb_brm_notime#,
    # tb_brm_full_zint = tb_brm_full_zint,
     #tb_brm_intercept_zint= tb_brm_intercept_zint
