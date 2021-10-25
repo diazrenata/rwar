@@ -5,8 +5,6 @@
 \title{Fit multiple candidate brms}
 \usage{
 fit_brms3(some_sims, cores = 1, iter = 8000, thin = 2)
-
-fit_brms3(some_sims, cores = 1, iter = 8000, thin = 2)
 }
 \arguments{
 \item{some_sims}{dataframe with columns matssname, timeperiod, source, year, total_energy, total_biomass}
@@ -17,9 +15,7 @@ fit_brms3(some_sims, cores = 1, iter = 8000, thin = 2)
 }
 \value{
 list of brm fit on total_energy, on total_biomass, and dataset name
-
-list of brm fit on total_energy, on total_biomass, and dataset name
 }
 \description{
-fits on ANNUAL MEANS PER CURRENCY with NO RANDOM FACTOR.
+Fit multiple candidate brms
 }

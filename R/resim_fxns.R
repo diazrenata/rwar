@@ -487,7 +487,7 @@ compare_both_brms <- function(some_brms_fits) {
 #' @return list of brm fit on total_energy, on total_biomass, and dataset name
 #' @export
 #'
-#' @importFrom brms brm
+#' @importFrom brms brm prior
 #' @importFrom dplyr filter
 fit_brms3 <- function(some_sims, cores = 1, iter = 8000, thin =2) {
 
@@ -504,10 +504,10 @@ fit_brms3 <- function(some_sims, cores = 1, iter = 8000, thin =2) {
   # Fit a brm on total_energy
   te_brm_full <- brms::brm(total_energy ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin)
   te_brm_intercept <- brms::brm(total_energy ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
-  te_brm_nosource <- brms::brm(total_energy ~ (timeperiod) , data = justsims, cores = cores, iter = iter, thin = thin)
+  te_brm_nosource <- brms::brm(total_energy ~ (timeperiod), data = justsims, cores = cores, iter = iter, thin = thin)
   te_brm_notime <- brms::brm(total_energy ~ 1, data = justsims, cores = cores, iter = iter, thin = thin)
-  te_brm_full_zint <- brms::brm(total_energy ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
-  te_brm_intercept_zint <- brms::brm(total_energy ~ (timeperiod + source), data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
+  te_brm_full_zint <- brms::brm(total_energy ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin, prior = brms::prior(constant(0), class = "b", coef = "sourcecurrency"))
+  te_brm_intercept_zint <- brms::brm(total_energy ~ (timeperiod + source), data = justsims, cores = cores, iter = iter, thin = thin, prior = brms::prior(constant(0), class = "b", coef = "sourcecurrency"))
 
 
   te_brms = list(
@@ -525,8 +525,8 @@ fit_brms3 <- function(some_sims, cores = 1, iter = 8000, thin =2) {
   tb_brm_intercept <- brms::brm(total_biomass ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
   tb_brm_nosource <- brms::brm(total_biomass ~ (timeperiod) , data = justsims, cores = cores, iter = iter, thin = thin)
   tb_brm_notime <- brms::brm(total_biomass ~ 1 , data = justsims, cores = cores, iter = iter, thin = thin)
-  tb_brm_full_zint <- brms::brm(total_energy ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
-  tb_brm_intercept_zint <- brms::brm(total_energy ~ (timeperiod + source), data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
+  tb_brm_full_zint <- brms::brm(total_biomass ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
+  tb_brm_intercept_zint <- brms::brm(total_biomass ~ (timeperiod + source), data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
 
 
 
