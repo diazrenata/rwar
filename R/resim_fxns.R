@@ -447,7 +447,7 @@ compare_brms <- function(brms_fits) {
 
   brms_fits <- lapply(brms_fits, brms::add_criterion, criterion  = "loo")
 
-  brms_comparison <- brms::loo_compare(brms_fits[[1]], brms_fits[[2]],brms_fits[[3]], brms_fits[[4]], brms_fits[[5]], brms_fits[[6]], model_names = names(brms_fits)) %>%
+  brms_comparison <- brms::loo_compare(brms_fits[[1]], brms_fits[[2]],brms_fits[[3]]) %>% #, brms_fits[[4]], brms_fits[[5]], brms_fits[[6]], model_names = names(brms_fits)) %>%
     as.data.frame() %>%
     dplyr::mutate(model = row.names(.),
                   rank = dplyr::row_number())
@@ -503,40 +503,40 @@ fit_brms3 <- function(some_sims, cores = 1, iter = 8000, thin =2) {
 
   # Fit a brm on total_energy
   te_brm_full <- brms::brm(total_energy ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin)
-  te_brm_intercept <- brms::brm(total_energy ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
+#  te_brm_intercept <- brms::brm(total_energy ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
   te_brm_nosource <- brms::brm(total_energy ~ (timeperiod), data = justsims, cores = cores, iter = iter, thin = thin)
   te_brm_notime <- brms::brm(total_energy ~ 1, data = justsims, cores = cores, iter = iter, thin = thin)
-  te_brm_full_zint <- brms::brm(total_energy ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin, prior = brms::prior(constant(0), class = "b", coef = "sourcecurrency"))
-  te_brm_intercept_zint <- brms::brm(total_energy ~ (timeperiod + source), data = justsims, cores = cores, iter = iter, thin = thin, prior = brms::prior(constant(0), class = "b", coef = "sourcecurrency"))
+#  te_brm_full_zint <- brms::brm(total_energy ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin, prior = brms::prior(constant(0), class = "b", coef = "sourcecurrency"))
+ # te_brm_intercept_zint <- brms::brm(total_energy ~ (timeperiod + source), data = justsims, cores = cores, iter = iter, thin = thin, prior = brms::prior(constant(0), class = "b", coef = "sourcecurrency"))
 
 
   te_brms = list(
     te_brm_full = te_brm_full,
-    te_brm_intercept = te_brm_intercept,
+   # te_brm_intercept = te_brm_intercept,
     te_brm_nosource = te_brm_nosource,
-    te_brm_notime = te_brm_notime,
-    te_brm_full_zint= te_brm_full_zint,
-    te_brm_intercept_zint = te_brm_intercept_zint
+    te_brm_notime = te_brm_notime#,
+   # te_brm_full_zint= te_brm_full_zint,
+    #te_brm_intercept_zint = te_brm_intercept_zint
   )
 
 
   # Fit the brm on total_biomass
   tb_brm_full <- brms::brm(total_biomass ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin)
-  tb_brm_intercept <- brms::brm(total_biomass ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
+#  tb_brm_intercept <- brms::brm(total_biomass ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
   tb_brm_nosource <- brms::brm(total_biomass ~ (timeperiod) , data = justsims, cores = cores, iter = iter, thin = thin)
   tb_brm_notime <- brms::brm(total_biomass ~ 1 , data = justsims, cores = cores, iter = iter, thin = thin)
-  tb_brm_full_zint <- brms::brm(total_biomass ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
-  tb_brm_intercept_zint <- brms::brm(total_biomass ~ (timeperiod + source), data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
+#  tb_brm_full_zint <- brms::brm(total_biomass ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
+#  tb_brm_intercept_zint <- brms::brm(total_biomass ~ (timeperiod + source), data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
 
 
 
   tb_brms = list(
     tb_brm_full = tb_brm_full,
     tb_brm_intercept = tb_brm_intercept,
-    tb_brm_nosource = tb_brm_nosource,
-    tb_brm_notime = tb_brm_notime,
-    tb_brm_full_zint = tb_brm_full_zint,
-    tb_brm_intercept_zint= tb_brm_intercept_zint
+   # tb_brm_nosource = tb_brm_nosource,
+    tb_brm_notime = tb_brm_notime#,
+   # tb_brm_full_zint = tb_brm_full_zint,
+    #tb_brm_intercept_zint= tb_brm_intercept_zint
   )
 
 
