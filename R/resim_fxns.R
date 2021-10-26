@@ -247,307 +247,81 @@ draw_communities_wrapper <- function(ts_comp, begin_years = 1988:1992, end_years
   dplyr::bind_rows(drawn_communities, .id = "sim_iteration")
 
 }
-#' Fit brms to currencies
+
+#' Simulate dynamics repeating begin dynamics for end
 #'
-#' @param some_sims dataframe with columns matssname, timeperiod, source, year, total_energy, total_biomass
-#' @param cores how many cores to use. if on hpg, use ONE. if local, do what you want.
-#' @param iter how many iterations. at scale, I've been using 4000 to be generous.
+#' @param dat matss-style
 #'
-#' @return list of brm fit on total_energy, on total_biomass, and dataset name
+#' @return sims drawn as if begin years were also the end years
 #' @export
-#'
-#' @importFrom brms brm
-#' @importFrom dplyr filter
-fit_brms <- function(some_sims, cores = 1, iter = 8000, thin =2) {
-#
-#   # something in rwar as I currently have it is locking the namespace and interfering with drake, at least locally. this is not my best work but it gets rwar out of the namespace if it's attached.
-#   is_rwar_attached = any(grepl("rwar", names(sessionInfo()[7]$otherPkgs)))
-#   if(is_rwar_attached) {
-#     detach("package:rwar", unload = T)
-#   }
+make_nochange_sims <- function(dat) {
 
-  # sims returns estimates of the raw values, which we don't want for the model fit (we jsut want the ones that come from drawing from the densityGMMS)
-  justsims <- dplyr::filter(some_sims, source %in% c("currency", "abundance")) # remove raw
+  dat_nochange <- dat
 
+  begin_rows <- which(dat_nochange$covariates$year %in% c(1988:1992))
+  end_rows <- which(dat_nochange$covariates$year %in% c(2014:2018))
 
-  # Fit a brm on total_energy
-  te_brm <- brms::brm(total_energy ~ (timeperiod * source) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
+  dat_nochange$abundance[end_rows, ] <- dat_nochange$abundance[begin_rows, ]
 
-  # Fit the brm on total_biomass
-  tb_brm <- brms::brm(total_biomass ~ (timeperiod * source) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
+  dat_nochange_gmms <- rwar::construct_sampling_gmm(dat_nochange, n_isd_draws = 10)
+  nochange_sims <- rwar::draw_communities_wrapper(dat_nochange, sampling_gmms = dat_nochange_gmms, ndraws = 100)
+  nochange_sims$simtype = "nochange"
 
-  # keep track of what dataset this is
-  md <- some_sims$matssname[1]
-
-  return(list(
-    te_brm = te_brm,
-    tb_brm = tb_brm,
-    matssname =md
-  ))
+  return(nochange_sims)
 
 }
 
-
-#' Extract draws from brms
+#'  Simulate dynamics repeating begin size structure for end
 #'
-#' @param some_brms list with $te_brm, $tb_brm, $matssname
+#' @param dat matss style
 #'
-#' @return list with $te_draws, $tb_draws, $matssname
+#' @return sims drawn using begin ss for end (both actual and sim)
 #' @export
 #'
-#' @importFrom tidybayes tidy_draws
-get_brm_draws <- function(some_brms) {
+make_nosizechange_sims <- function(dat) {
+  dat_gmms <- rwar::construct_sampling_gmm(dat, n_isd_draws = 10)
 
- te_draws <- tidybayes::tidy_draws(some_brms$te_brm)
- tb_draws <- tidybayes::tidy_draws(some_brms$tb_brm)
+  nosizechange_gmms <- dat_gmms
+  nosizechange_gmms$end <- nosizechange_gmms$begin %>% mutate(timeperiod = "end")
 
- return(list(
-   te_draws = te_draws,
-   tb_draws = tb_draws,
-   matssname = some_brms$matssname
- )
-)
+  nosizechange_sims <- rwar::draw_communities_wrapper(dat, sampling_gmms = nosizechange_gmms, ndraws = 100)
 
-}
-
-#' Get draws as a dataframe
-#'
-#' @param some_draws from get_brm_draws
-#'
-#' @return some_draws as a df
-#' @export
-#' @importFrom dplyr mutate bind_rows
-draws_df <- function(some_draws) {
-
-  te_draws <- some_draws$te_draws %>%
-    dplyr::mutate(currency = "energy")
-
-  tb_draws <- some_draws$tb_draws %>%
-    dplyr::mutate(currency = "biomass")
-
-  return(dplyr::bind_rows(te_draws, tb_draws) %>%
-           dplyr::mutate(matssname = some_draws$matssname))
-
-}
-
-#' Get QIs for draws
-#'
-#' @param some_draws list with te_draws, tb_draws, matssname
-#'
-#' @return dataframe of qis
-#' @export
-#'
-#' @importFrom tidybayes median_qi
-#' @importFrom dplyr mutate
-get_draw_qis <- function(some_draws) {
-
-  te_qis <- some_draws$te_draws %>%
-    tidybayes::median_qi(currency_intercept = b_sourcecurrency,
-                         abundance_slope = b_timeperiodend,
-                         currency_offset = `b_timeperiodend:sourcecurrency`,
-                         currency_slope =  `b_timeperiodend:sourcecurrency` + b_timeperiodend,
-                         currency_slope_scaled = (`b_timeperiodend:sourcecurrency` + b_timeperiodend) / b_Intercept,
-                         abundance_slope_scaled = (`b_timeperiodend`) / b_Intercept,
-                         currency_offset_scaled = (`b_timeperiodend:sourcecurrency`) / b_Intercept,
-                         .width = c(.99, .95, .8)) %>%
-    dplyr::mutate(currency = "energy")
-
-
-  tb_qis <- some_draws$tb_draws %>%
-    tidybayes::median_qi(currency_intercept = b_sourcecurrency,
-                         abundance_slope = b_timeperiodend,
-                         currency_offset = `b_timeperiodend:sourcecurrency`,
-                         currency_slope =  `b_timeperiodend:sourcecurrency` + b_timeperiodend,
-                         currency_slope_scaled = (`b_timeperiodend:sourcecurrency` + b_timeperiodend) / b_Intercept,
-                         abundance_slope_scaled = (`b_timeperiodend`) / b_Intercept,
-                         currency_offset_scaled = (`b_timeperiodend:sourcecurrency`) / b_Intercept,
-                         .width = c(.99, .95, .8)) %>%
-   dplyr::mutate(currency = "biomass")
-
-  qis <- dplyr::bind_rows(te_qis, tb_qis) %>%
-    dplyr::mutate(matssname = some_draws$matssname)
+  nosizechange_sims$simtype = "nosizechange"
+  return(nosizechange_sims)
 }
 
 
-
-#' Fit multiple candidate brms
+#' Draw sims according to actual dynamics
 #'
-#' @param some_sims dataframe with columns matssname, timeperiod, source, year, total_energy, total_biomass
-#' @param cores how many cores to use. if on hpg, use ONE. if local, do what you want.
-#' @param iter how many iterations. at scale, I've been using 4000 to be generous.
+#' Draws both actual and sim sims.
 #'
-#' @return list of brm fit on total_energy, on total_biomass, and dataset name
+#' @param dat matss style
+#'
+#' @return sims drawn as normal
 #' @export
-#'
-#' @importFrom brms brm
-#' @importFrom dplyr filter
-fit_brms2 <- function(some_sims, cores = 1, iter = 8000, thin =2) {
-
-  # # something in rwar as I currently have it is locking the namespace and interfering with drake, at least locally. this is not my best work but it gets rwar out of the namespace if it's attached.
-  # is_rwar_attached = any(grepl("rwar", names(sessionInfo()[7]$otherPkgs)))
-  # if(is_rwar_attached) {
-  #   detach("package:rwar", unload = T)
-  # }
-
-  # sims returns estimates of the raw values, which we don't want for the model fit (we jsut want the ones that come from drawing from the densityGMMS)
-  justsims <- dplyr::filter(some_sims, source %in% c("currency", "abundance")) # remove raw
-
-
-  # Fit a brm on total_energy
-  te_brm_full <- brms::brm(total_energy ~ (timeperiod * source) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
-  te_brm_intercept <- brms::brm(total_energy ~ (timeperiod + source) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
-  te_brm_nosource <- brms::brm(total_energy ~ (timeperiod) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
-  te_brm_notime <- brms::brm(total_energy ~ 1, data = justsims, cores = cores, iter = iter, thin = thin)
-
-  te_brms = list(
-    te_brm_full = te_brm_full,
-    te_brm_intercept = te_brm_intercept,
-    te_brm_nosource = te_brm_nosource,
-    te_brm_notime = te_brm_notime
-  )
-
-
-  # Fit the brm on total_biomass
-  tb_brm_full <- brms::brm(total_biomass ~ (timeperiod * source) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
-  tb_brm_intercept <- brms::brm(total_biomass ~ (timeperiod + source) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
-  tb_brm_nosource <- brms::brm(total_biomass ~ (timeperiod) + (1 | year), data = justsims, cores = cores, iter = iter, thin = thin)
-  tb_brm_notime <- brms::brm(total_biomass ~ 1 , data = justsims, cores = cores, iter = iter, thin = thin)
-
-
-
-  tb_brms = list(
-    tb_brm_full = tb_brm_full,
-    tb_brm_intercept = tb_brm_intercept,
-    tb_brm_nosource = tb_brm_nosource,
-    tb_brm_notime = tb_brm_notime
-  )
-
-
-  # keep track of what dataset this is
-  md <- some_sims$matssname[1]
-
-  return(list(
-    te_brms = te_brms,
-    tb_brms = tb_brms,
-    matssname =md
-  ))
-
+make_actual_sims <- function(dat){
+  dat_gmms <- rwar::construct_sampling_gmm(dat, n_isd_draws = 10)
+  sims <- rwar::draw_communities_wrapper(dat, sampling_gmms = dat_gmms, ndraws = 100)
+  sims$simtype = "actual"
+  return(sims)
 }
 
-#' LOO compare on brms
+#' Summarize across sims
 #'
-#' @param brms_fits for one currency
+#' @param sims sims df
 #'
-#' @return a dataframe of results from loo_compare
+#' @return sims df summarized to mean energy and biomass for each year*source
 #' @export
-#'
-#' @importFrom brms add_criterion loo_compare
-#' @importFrom dplyr mutate row_number
-compare_brms <- function(brms_fits) {
+#' @importFrom dplyr filter group_by summarize n ungroup
+summarize_sims <- function(sims) {
 
-  brms_fits <- lapply(brms_fits, brms::add_criterion, criterion  = "loo")
+  sims <- sims %>% dplyr::filter(source != "raw") %>%
+    dplyr::group_by(timeperiod, source, year, matssname,simtype) %>%
+    dplyr::summarize(total_energy = mean(total_energy),
+                     total_biomass = mean(total_biomass),
+                     ndraws = dplyr::n()) %>%
+    dplyr::ungroup()
 
-  brms_comparison <- brms::loo_compare(brms_fits[[1]], brms_fits[[2]],brms_fits[[3]], model_names = names(brms_fits)) %>% #, brms_fits[[4]], brms_fits[[5]], brms_fits[[6]]) %>%
-    as.data.frame() %>%
-    dplyr::mutate(model = row.names(.),
-                  rank = dplyr::row_number())
-
-  return(brms_comparison)
-
-}
-
-#' Pull comparisons for two sets of brms
-#'
-#' @param some_brms_fits a list
-#'
-#' @return a dataframe
-#' @export
-#'
-#' @importFrom dplyr bind_rows mutate
-compare_both_brms <- function(some_brms_fits) {
-
-  biomass <- compare_brms(some_brms_fits$tb_brms)
-  energy <- compare_brms(some_brms_fits$te_brms)
-
-  both_comparisons <- dplyr::bind_rows(biomass = biomass, energy = energy, .id = "currency") %>%
-    dplyr::mutate(matssname = some_brms_fits$matssname,
-                  simtype = some_brms_fits$simtype[1])
-
-
-  return(both_comparisons)
-
-}
-
-#' Fit multiple candidate brms
-#'
-#' @param some_sims dataframe with columns matssname, timeperiod, source, year, total_energy, total_biomass
-#' @param cores how many cores to use. if on hpg, use ONE. if local, do what you want.
-#' @param iter how many iterations. at scale, I've been using 4000 to be generous.
-#'
-#' @return list of brm fit on total_energy, on total_biomass, and dataset name
-#' @export
-#'
-#' @importFrom brms brm prior
-#' @importFrom dplyr filter
-fit_brms3 <- function(some_sims, cores = 1, iter = 8000, thin =2) {
-
-  # # something in rwar as I currently have it is locking the namespace and interfering with drake, at least locally. this is not my best work but it gets rwar out of the namespace if it's attached.
-  # is_rwar_attached = any(grepl("rwar", names(sessionInfo()[7]$otherPkgs)))
-  # if(is_rwar_attached) {
-  #   detach("package:rwar", unload = T)
-  # }
-
-  # sims returns estimates of the raw values, which we don't want for the model fit (we jsut want the ones that come from drawing from the densityGMMS)
-  justsims <- dplyr::filter(some_sims, source %in% c("currency", "abundance")) # remove raw
-
-
-  # Fit a brm on total_energy
-  te_brm_full <- brms::brm(total_energy ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin)
-#  te_brm_intercept <- brms::brm(total_energy ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
-  te_brm_nosource <- brms::brm(total_energy ~ (timeperiod), data = justsims, cores = cores, iter = iter, thin = thin)
-  te_brm_notime <- brms::brm(total_energy ~ 1, data = justsims, cores = cores, iter = iter, thin = thin)
-#  te_brm_full_zint <- brms::brm(total_energy ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin, prior = brms::prior(constant(0), class = "b", coef = "sourcecurrency"))
- # te_brm_intercept_zint <- brms::brm(total_energy ~ (timeperiod + source), data = justsims, cores = cores, iter = iter, thin = thin, prior = brms::prior(constant(0), class = "b", coef = "sourcecurrency"))
-
-
-  te_brms = list(
-    te_brm_full = te_brm_full,
-   # te_brm_intercept = te_brm_intercept,
-    te_brm_nosource = te_brm_nosource,
-    te_brm_notime = te_brm_notime#,
-   # te_brm_full_zint= te_brm_full_zint,
-    #te_brm_intercept_zint = te_brm_intercept_zint
-  )
-
-
-  # Fit the brm on total_biomass
-  tb_brm_full <- brms::brm(total_biomass ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin)
-#  tb_brm_intercept <- brms::brm(total_biomass ~ (timeperiod + source) , data = justsims, cores = cores, iter = iter, thin = thin)
-  tb_brm_nosource <- brms::brm(total_biomass ~ (timeperiod) , data = justsims, cores = cores, iter = iter, thin = thin)
-  tb_brm_notime <- brms::brm(total_biomass ~ 1 , data = justsims, cores = cores, iter = iter, thin = thin)
-#  tb_brm_full_zint <- brms::brm(total_biomass ~ (timeperiod * source) , data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
-#  tb_brm_intercept_zint <- brms::brm(total_biomass ~ (timeperiod + source), data = justsims, cores = cores, iter = iter, thin = thin, prior = prior(constant(0), class = "b", coef = "sourcecurrency"))
-
-
-
-  tb_brms = list(
-    tb_brm_full = tb_brm_full,
-    #tb_brm_intercept = tb_brm_intercept,
-    tb_brm_nosource = tb_brm_nosource,
-    tb_brm_notime = tb_brm_notime#,
-   # tb_brm_full_zint = tb_brm_full_zint,
-    #tb_brm_intercept_zint= tb_brm_intercept_zint
-  )
-
-
-  # keep track of what dataset this is
-  md <- some_sims$matssname[1]
-
-  return(list(
-    te_brms = te_brms,
-    tb_brms = tb_brms,
-    matssname =md,
-    simtype = some_sims$simtype[1]
-  ))
+  return(sims)
 
 }
