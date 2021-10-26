@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Fit multiple candidate brms — fit_brms • rwar</title>
+<title>Extract draws from winning models — winner_draws • rwar</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Fit multiple candidate brms — fit_brms" />
-<meta property="og:description" content="Fit multiple candidate brms" />
+<meta property="og:title" content="Extract draws from winning models — winner_draws" />
+<meta property="og:description" content="Extract draws from winning models" />
 
 
 
@@ -103,37 +103,33 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Fit multiple candidate brms</h1>
+    <h1>Extract draws from winning models</h1>
     
-    <div class="hidden name"><code>fit_brms.Rd</code></div>
+    <div class="hidden name"><code>winner_draws.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Fit multiple candidate brms</p>
+    <p>Extract draws from winning models</p>
     </div>
 
-    <pre class="usage"><span class='fu'>fit_brms</span><span class='op'>(</span><span class='va'>some_sims</span>, cores <span class='op'>=</span> <span class='fl'>1</span>, iter <span class='op'>=</span> <span class='fl'>8000</span>, thin <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>winner_draws</span><span class='op'>(</span><span class='va'>some_winners</span>, <span class='va'>some_models</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>some_sims</th>
-      <td><p>dataframe with columns matssname, timeperiod, source, total_energy, total_biomass</p></td>
+      <th>some_winners</th>
+      <td><p>df with rows for energy and biomass, column "model" name of best model</p></td>
     </tr>
     <tr>
-      <th>cores</th>
-      <td><p>how many cores to use. if on hpg, use ONE. if local, do what you want.</p></td>
-    </tr>
-    <tr>
-      <th>iter</th>
-      <td><p>how many iterations. at scale, I've been using 4000 to be generous.</p></td>
+      <th>some_models</th>
+      <td><p>list of models from fit_brms</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>list of brm fit on total_energy, on total_biomass, and dataset name</p>
+    <p>df of draws from both models</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

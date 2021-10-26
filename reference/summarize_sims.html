@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Fit multiple candidate brms — fit_brms • rwar</title>
+<title>Summarize across sims — summarize_sims • rwar</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Fit multiple candidate brms — fit_brms" />
-<meta property="og:description" content="Fit multiple candidate brms" />
+<meta property="og:title" content="Summarize across sims — summarize_sims" />
+<meta property="og:description" content="Summarize across sims" />
 
 
 
@@ -103,37 +103,29 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Fit multiple candidate brms</h1>
+    <h1>Summarize across sims</h1>
     
-    <div class="hidden name"><code>fit_brms.Rd</code></div>
+    <div class="hidden name"><code>summarize_sims.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Fit multiple candidate brms</p>
+    <p>Summarize across sims</p>
     </div>
 
-    <pre class="usage"><span class='fu'>fit_brms</span><span class='op'>(</span><span class='va'>some_sims</span>, cores <span class='op'>=</span> <span class='fl'>1</span>, iter <span class='op'>=</span> <span class='fl'>8000</span>, thin <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>summarize_sims</span><span class='op'>(</span><span class='va'>sims</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>some_sims</th>
-      <td><p>dataframe with columns matssname, timeperiod, source, total_energy, total_biomass</p></td>
-    </tr>
-    <tr>
-      <th>cores</th>
-      <td><p>how many cores to use. if on hpg, use ONE. if local, do what you want.</p></td>
-    </tr>
-    <tr>
-      <th>iter</th>
-      <td><p>how many iterations. at scale, I've been using 4000 to be generous.</p></td>
+      <th>sims</th>
+      <td><p>sims df</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>list of brm fit on total_energy, on total_biomass, and dataset name</p>
+    <p>sims df summarized to mean energy and biomass for each year*source</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
