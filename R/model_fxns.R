@@ -104,7 +104,12 @@ loo_select <- function(some_compares) {
     dplyr::mutate(model_complexity = ifelse(grepl("full", model), 3,
                                      ifelse(grepl("source", model), 2, 1))) %>%
     dplyr::arrange(matssname, currency, simtype, rank) %>%
-    dplyr::mutate(in_one_se = (elpd_diff + se_diff ) >= 0) %>%
+    dplyr::group_by(matssname, currency, simtype) %>%
+    dplyr::mutate(best_elpd = elpd_loo[1],
+                  best_se = se_elpd_loo[1]) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(one_se_cutoff = best_elpd - best_se) %>%
+    dplyr::mutate(in_one_se = elpd_loo >= one_se_cutoff) %>%
     dplyr::filter(in_one_se) %>%
     dplyr::group_by(currency) %>%
     dplyr::arrange(model_complexity) %>%
