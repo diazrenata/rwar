@@ -447,7 +447,7 @@ compare_brms <- function(brms_fits) {
 
   brms_fits <- lapply(brms_fits, brms::add_criterion, criterion  = "loo")
 
-  brms_comparison <- brms::loo_compare(brms_fits[[1]], brms_fits[[2]],brms_fits[[3]]) %>% #, brms_fits[[4]], brms_fits[[5]], brms_fits[[6]], model_names = names(brms_fits)) %>%
+  brms_comparison <- brms::loo_compare(brms_fits[[1]], brms_fits[[2]],brms_fits[[3]], model_names = names(brms_fits)) %>% #, brms_fits[[4]], brms_fits[[5]], brms_fits[[6]]) %>%
     as.data.frame() %>%
     dplyr::mutate(model = row.names(.),
                   rank = dplyr::row_number())
