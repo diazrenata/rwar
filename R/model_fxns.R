@@ -240,7 +240,9 @@ extract_diagnostics <- function(some_fits) {
 
   all_diagnostics <- dplyr::bind_rows(
     dplyr::bind_rows(te_diagnostics),
-    dplyr::bind_rows(tb_diagnostics))
+    dplyr::bind_rows(tb_diagnostics)) %>%
+    dplyr::mutate(matssname = some_fits$matssname,
+                  simtype = some_fits$simtype)
 
   return(all_diagnostics)
 }
