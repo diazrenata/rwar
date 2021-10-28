@@ -174,3 +174,73 @@ winner_qis <- function(some_draws) {
 
   return(some_qis)
 }
+
+
+#' Extract model diagnostics
+#'
+#' for many unsupervised brms
+#'
+#' @param some_fits some_fits
+#'
+#' @return data frame of rhats, neffs, divergent
+#' @export
+#'
+#' @importFrom brms nuts_params rhat neff_ratio
+#' @importFrom dplyr mutate filter group_by ungroup bind_rows summarize bind_cols
+extract_diagnostics <- function(some_fits) {
+
+  te_diagnostics <- list()
+
+  for(mod_name in names(some_fits$te_brms)) {
+    nuts <- brms::nuts_params(some_fits$te_brms[[mod_name]])
+    rhats <- brms::rhat(some_fits$te_brms[[mod_name]]) %>%
+      t() %>%
+      as.data.frame()
+    colnames(rhats) <- paste0("rhat_", colnames(rhats))
+
+    neffs <- brms::neff_ratio(some_fits$te_brms[[mod_name]]) %>%
+      t() %>%
+      as.data.frame()
+    colnames(neffs) <- paste0("neff_", colnames(neffs))
+
+    divergents <- nuts %>%
+      dplyr::filter(Parameter == "divergent__") %>%
+      dplyr::summarize(divergent_sum = sum(Value)) %>%
+      dplyr::ungroup()
+
+    te_diagnostics[[mod_name]] <- dplyr::bind_cols(neffs, rhats) %>%
+      dplyr::mutate(divergent_sum = divergents$divergent_sum,
+                    model = mod_name,
+                    currency = "energy")
+  }
+  tb_diagnostics <- list()
+
+  for(mod_name in names(some_fits$tb_brms)) {
+    nuts <- brms::nuts_params(some_fits$tb_brms[[mod_name]])
+    rhats <- brms::rhat(some_fits$tb_brms[[mod_name]]) %>%
+      t() %>%
+      as.data.frame()
+    colnames(rhats) <- paste0("rhat_", colnames(rhats))
+
+    neffs <- brms::neff_ratio(some_fits$tb_brms[[mod_name]]) %>%
+      t() %>%
+      as.data.frame()
+    colnames(neffs) <- paste0("neff_", colnames(neffs))
+
+    divergents <- nuts %>%
+      dplyr::filter(Parameter == "divergent__") %>%
+      dplyr::summarize(divergent_sum = sum(Value)) %>%
+      dplyr::ungroup()
+
+    tb_diagnostics[[mod_name]] <- dplyr::bind_cols(neffs, rhats) %>%
+      dplyr::mutate(divergent_sum = divergents$divergent_sum,
+                    model = mod_name,
+                    currency = "biomass")
+  }
+
+  all_diagnostics <- dplyr::bind_rows(
+    dplyr::bind_rows(te_diagnostics),
+    dplyr::bind_rows(tb_diagnostics))
+
+  return(all_diagnostics)
+}
