@@ -325,3 +325,26 @@ summarize_sims <- function(sims) {
   return(sims)
 
 }
+
+#' Wrapper for getting just summarized sims
+#'
+#' For drake to avoid saving all the sims
+#'
+#' @param dat matss
+#' @param simtype character
+#'
+#' @return df
+#' @export
+ssims_wrapper <- function(dat, simtype = "actual") {
+
+  if(simtype == "actual") {
+    sims <- make_actual_sims(dat)
+  } else if (simtype == "nsc") {
+    sims <- make_nosizechange_sims(dat)
+  } else if (simtype == "nc") {
+    sims <- make_nochange_sims(dat)
+  }
+
+  ssims <- summarize_sims(sims)
+  return(ssims)
+}
