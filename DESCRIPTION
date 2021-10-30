@@ -23,6 +23,7 @@ Imports:
     magrittr,
     mclust,
     tidybayes,
+    rstanarm,
     vegan
 Suggests:
     covr,
