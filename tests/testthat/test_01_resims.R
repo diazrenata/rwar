@@ -75,4 +75,29 @@ test_that("draw_communities", {
   expect_false(all(draws5$total_biomass == draws6$total_biomass))
 
 
+  expect_true(all(sort(unique(draws3$isd_timeperiod)) == c("begin", "end", "raw")))
+
+  expect_true(all(sort(unique(draws3$timeperiod)) == c("begin", "end")))
+
+  expect_true(all(unique(draws3$year) == c(1988:1992, 2014:2018)))
+
+  abund <- dplyr::filter(draws1, source == "abundance")
+
+  expect_true(unique(abund$isd_timeperiod) == "begin")
+
+  expect_true(all(unique(abund$timeperiod) == c("begin", "end")))
+
+  curr <- dplyr::filter(draws1, source == "currency")
+
+  expect_true(all(unique(curr$isd_timeperiod) == c("begin", "end")))
+
+
+  expect_true(all(unique(curr$timeperiod) == c("begin", "end")))
+  raw <- dplyr::filter(draws1, source == "raw")
+
+  expect_true(all(unique(raw$isd_timeperiod) == "raw"))
+
+
+  expect_true(all(unique(raw$timeperiod) == c("begin", "end")))
+
 })
