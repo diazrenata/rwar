@@ -4,10 +4,10 @@
 \alias{compare_stanarms}
 \title{Compare fits}
 \usage{
-compare_stanarms(brms_fits)
+compare_stanarms(stanlms_fits)
 }
 \arguments{
-\item{brms_fits}{fits}
+\item{stanlms_fits}{fits}
 }
 \value{
 df

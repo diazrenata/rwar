@@ -1,98 +1,6 @@
-#' LOO compare on brms
-#'
-#' @param brms_fits for one currency
-#'
-#' @return a dataframe of results from loo_compare
-#' @export
-#'
-#' @importFrom brms add_criterion loo_compare
-#' @importFrom dplyr mutate row_number
-compare_brms <- function(brms_fits) {
-
-  brms_fits <- lapply(brms_fits, brms::add_criterion, criterion  = "loo")
-
-  brms_comparison <- brms::loo_compare(brms_fits[[1]], brms_fits[[2]],brms_fits[[3]], model_names = names(brms_fits)) %>%
-    as.data.frame() %>%
-    dplyr::mutate(model = row.names(.),
-                  rank = dplyr::row_number())
-
-  return(brms_comparison)
-
-}
-
-#' Pull comparisons for two sets of brms
-#'
-#' @param some_brms_fits a list
-#'
-#' @return a dataframe
-#' @export
-#'
-#' @importFrom dplyr bind_rows mutate
-compare_both_brms <- function(some_brms_fits) {
-
-  biomass <- compare_brms(some_brms_fits$tb_brms)
-  energy <- compare_brms(some_brms_fits$te_brms)
-
-  both_comparisons <- dplyr::bind_rows(biomass = biomass, energy = energy, .id = "currency") %>%
-    dplyr::mutate(matssname = some_brms_fits$matssname,
-                  simtype = some_brms_fits$simtype[1])
-
-
-  return(both_comparisons)
-
-}
-
-#' Fit multiple candidate brms
-#'
-#' @param some_sims dataframe with columns matssname, timeperiod, source, total_energy, total_biomass
-#' @param cores how many cores to use. if on hpg, use ONE. if local, do what you want.
-#' @param iter how many iterations. at scale, I've been using 4000 to be generous.
-#'
-#' @return list of brm fit on total_energy, on total_biomass, and dataset name
-#' @export
-#'
-#' @importFrom brms brm prior
-#' @importFrom dplyr filter
-fit_brms <- function(some_sims, cores = 1, iter = 8000, thin =2) {
-
-
-  # Fit a brm on total_energy
-  te_brm_full <- brms::brm(total_energy ~ (timeperiod * source) , data = some_sims, cores = cores, iter = iter, thin = thin)
-  te_brm_nosource <- brms::brm(total_energy ~ (timeperiod), data = some_sims, cores = cores, iter = iter, thin = thin)
-  te_brm_notime <- brms::brm(total_energy ~ 1, data = some_sims, cores = cores, iter = iter, thin = thin)
-
-  te_brms = list(
-    te_brm_full = te_brm_full,
-    te_brm_nosource = te_brm_nosource,
-    te_brm_notime = te_brm_notime
-  )
-
-
-  # Fit the brm on total_biomass
-  tb_brm_full <- brms::brm(total_biomass ~ (timeperiod * source) , data = some_sims, cores = cores, iter = iter, thin = thin)
-  tb_brm_nosource <- brms::brm(total_biomass ~ (timeperiod) , data = some_sims, cores = cores, iter = iter, thin = thin)
-  tb_brm_notime <- brms::brm(total_biomass ~ 1 , data = some_sims, cores = cores, iter = iter, thin = thin)
-
-
-  tb_brms = list(
-    tb_brm_full = tb_brm_full,
-    tb_brm_nosource = tb_brm_nosource,
-    tb_brm_notime = tb_brm_notime
-  )
-
-  return(list(
-    te_brms = te_brms,
-    tb_brms = tb_brms,
-    matssname =some_sims$matssname[1],
-    simtype = some_sims$simtype[1]
-  ))
-
-}
-
-
 #' Select the simplest model within 1 se of the best model
 #'
-#' @param some_compares from compare_both_brms
+#' @param some_compares from compare_both_stanarms
 #'
 #' @return df with model names for best model for each currency
 #' @export
@@ -123,7 +31,7 @@ loo_select <- function(some_compares) {
 #' Extract draws from winning models
 #'
 #' @param some_winners df with rows for energy and biomass, column "model" name of best model
-#' @param some_models list of models from fit_brms
+#' @param some_models list of models from fit_stanlm
 #'
 #' @return df of draws from both models
 #' @export
@@ -141,10 +49,10 @@ winner_draws <- function(some_winners, some_models) {
     dplyr::select(model) %>%
     as.character()
 
-  te_draws <- tidybayes::tidy_draws(some_models$te_brms[[winner_energy_mod]]) %>%
+  te_draws <- tidybayes::tidy_draws(some_models$te_stanlms[[winner_energy_mod]]) %>%
     dplyr::mutate(currency = "energy", modtype = winner_energy_mod)
 
-  tb_draws <- tidybayes::tidy_draws(some_models$tb_brms[[winner_biomass_mod]]) %>%
+  tb_draws <- tidybayes::tidy_draws(some_models$tb_stanlms[[winner_biomass_mod]]) %>%
     dplyr::mutate(currency = "biomass", modtype = winner_biomass_mod)
 
   all_draws <- dplyr::bind_rows(te_draws, tb_draws) %>%
@@ -178,7 +86,7 @@ winner_qis <- function(some_draws) {
 
 #' Extract model diagnostics
 #'
-#' for many unsupervised brms
+#' for many unsupervised stanlms
 #'
 #' @param some_fits some_fits
 #'
@@ -191,14 +99,14 @@ extract_diagnostics <- function(some_fits) {
 
   te_diagnostics <- list()
 
-  for(mod_name in names(some_fits$te_brms)) {
-    nuts <- brms::nuts_params(some_fits$te_brms[[mod_name]])
-    rhats <- brms::rhat(some_fits$te_brms[[mod_name]]) %>%
+  for(mod_name in names(some_fits$te_stanlms)) {
+    nuts <- brms::nuts_params(some_fits$te_stanlms[[mod_name]])
+    rhats <- brms::rhat(some_fits$te_stanlms[[mod_name]]) %>%
       t() %>%
       as.data.frame()
     colnames(rhats) <- paste0("rhat_", colnames(rhats))
 
-    neffs <- brms::neff_ratio(some_fits$te_brms[[mod_name]]) %>%
+    neffs <- brms::neff_ratio(some_fits$te_stanlms[[mod_name]]) %>%
       t() %>%
       as.data.frame()
     colnames(neffs) <- paste0("neff_", colnames(neffs))
@@ -215,14 +123,14 @@ extract_diagnostics <- function(some_fits) {
   }
   tb_diagnostics <- list()
 
-  for(mod_name in names(some_fits$tb_brms)) {
-    nuts <- brms::nuts_params(some_fits$tb_brms[[mod_name]])
-    rhats <- brms::rhat(some_fits$tb_brms[[mod_name]]) %>%
+  for(mod_name in names(some_fits$tb_stanlms)) {
+    nuts <- brms::nuts_params(some_fits$tb_stanlms[[mod_name]])
+    rhats <- brms::rhat(some_fits$tb_stanlms[[mod_name]]) %>%
       t() %>%
       as.data.frame()
     colnames(rhats) <- paste0("rhat_", colnames(rhats))
 
-    neffs <- brms::neff_ratio(some_fits$tb_brms[[mod_name]]) %>%
+    neffs <- brms::neff_ratio(some_fits$tb_stanlms[[mod_name]]) %>%
       t() %>%
       as.data.frame()
     colnames(neffs) <- paste0("neff_", colnames(neffs))
@@ -258,33 +166,33 @@ extract_diagnostics <- function(some_fits) {
 #' @importFrom rstanarm stan_glm
 fit_stanlm <- function(some_sims) {
 
-  # Fit a brm on total_energy
-  te_brm_full <- rstanarm::stan_glm(total_energy ~ (timeperiod * source) , data = some_sims, iter =8000, thin = 4)
-  te_brm_nosource <- rstanarm::stan_glm(total_energy ~ (timeperiod), data = some_sims, iter =8000, thin = 4)
-  te_brm_notime <- rstanarm::stan_glm(total_energy ~ 1, data = some_sims, iter =8000, thin = 4)
+  # Fit a stanlm on total_energy
+  te_stanlm_full <- rstanarm::stan_glm(total_energy ~ (timeperiod * source) , data = some_sims, iter =8000, thin = 4)
+  te_stanlm_nosource <- rstanarm::stan_glm(total_energy ~ (timeperiod), data = some_sims, iter =8000, thin = 4)
+  te_stanlm_notime <- rstanarm::stan_glm(total_energy ~ 1, data = some_sims, iter =8000, thin = 4)
 
-  te_brms = list(
-    te_brm_full = te_brm_full,
-    te_brm_nosource = te_brm_nosource,
-    te_brm_notime = te_brm_notime
+  te_stanlms = list(
+    te_stanlm_full = te_stanlm_full,
+    te_stanlm_nosource = te_stanlm_nosource,
+    te_stanlm_notime = te_stanlm_notime
   )
 
 
-  # Fit the brm on total_biomass
-  tb_brm_full <- rstanarm::stan_glm(total_biomass ~ (timeperiod * source) , data = some_sims, iter = 8000, thin = 4)
-  tb_brm_nosource <- rstanarm::stan_glm(total_biomass ~ (timeperiod) , data = some_sims, iter = 8000, thin = 4)
-  tb_brm_notime <- rstanarm::stan_glm(total_biomass ~ 1 , data = some_sims, iter = 8000, thin = 4)
+  # Fit the stanlm on total_biomass
+  tb_stanlm_full <- rstanarm::stan_glm(total_biomass ~ (timeperiod * source) , data = some_sims, iter = 8000, thin = 4)
+  tb_stanlm_nosource <- rstanarm::stan_glm(total_biomass ~ (timeperiod) , data = some_sims, iter = 8000, thin = 4)
+  tb_stanlm_notime <- rstanarm::stan_glm(total_biomass ~ 1 , data = some_sims, iter = 8000, thin = 4)
 
 
-  tb_brms = list(
-    tb_brm_full = tb_brm_full,
-    tb_brm_nosource = tb_brm_nosource,
-    tb_brm_notime = tb_brm_notime
+  tb_stanlms = list(
+    tb_stanlm_full = tb_stanlm_full,
+    tb_stanlm_nosource = tb_stanlm_nosource,
+    tb_stanlm_notime = tb_stanlm_notime
   )
 
   return(list(
-    te_brms = te_brms,
-    tb_brms = tb_brms,
+    te_stanlms = te_stanlms,
+    tb_stanlms = tb_stanlms,
     matssname =some_sims$matssname[1],
     simtype = some_sims$simtype[1]
   ))
@@ -293,42 +201,42 @@ fit_stanlm <- function(some_sims) {
 
 #' Compare fits
 #'
-#' @param brms_fits fits
+#' @param stanlms_fits fits
 #'
 #' @return df
 #' @export
 #'
 #' @importFrom rstanarm loo loo_compare
 #' @importFrom dplyr mutate row_number
-compare_stanarms <- function(brms_fits) {
+compare_stanarms <- function(stanlms_fits) {
 
-  brms_loos<- lapply(brms_fits, rstanarm::loo, k_threshold= .7)
+  stanlms_loos<- lapply(stanlms_fits, rstanarm::loo, k_threshold= .7)
 
-  brms_comparison <- rstanarm::loo_compare(brms_loos) %>%
+  stanlms_comparison <- rstanarm::loo_compare(stanlms_loos) %>%
     as.data.frame() %>%
     dplyr::mutate(model = row.names(.),
                   rank = dplyr::row_number())
 
-  return(brms_comparison)
+  return(stanlms_comparison)
 
 }
 
 #' COmpare all fits
 #'
-#' @param some_brms_fits fits
+#' @param some_stanlms_fits fits
 #'
 #' @return df
 #' @export
 #'
 #' @importFrom dplyr bind_rows mutate
-compare_both_stanarms<- function(some_brms_fits) {
+compare_both_stanarms<- function(some_stanlms_fits) {
 
-  biomass <- compare_stanarms(brms_fits = some_brms_fits$tb_brms)
-  energy <- compare_stanarms(brms_fits = some_brms_fits$te_brms)
+  biomass <- compare_stanarms(stanlms_fits = some_stanlms_fits$tb_stanlms)
+  energy <- compare_stanarms(stanlms_fits = some_stanlms_fits$te_stanlms)
 
   both_comparisons <- dplyr::bind_rows(biomass = biomass, energy = energy, .id = "currency") %>%
-    dplyr::mutate(matssname = some_brms_fits$matssname,
-                  simtype = some_brms_fits$simtype[1])
+    dplyr::mutate(matssname = some_stanlms_fits$matssname,
+                  simtype = some_stanlms_fits$simtype[1])
 
 
   return(both_comparisons)

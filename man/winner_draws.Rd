@@ -9,7 +9,7 @@ winner_draws(some_winners, some_models)
 \arguments{
 \item{some_winners}{df with rows for energy and biomass, column "model" name of best model}
 
-\item{some_models}{list of models from fit_brms}
+\item{some_models}{list of models from fit_stanlm}
 }
 \value{
 df of draws from both models

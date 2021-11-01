@@ -7,7 +7,7 @@
 loo_select(some_compares)
 }
 \arguments{
-\item{some_compares}{from compare_both_brms}
+\item{some_compares}{from compare_both_stanarms}
 }
 \value{
 df with model names for best model for each currency

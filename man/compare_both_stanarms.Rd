@@ -4,10 +4,10 @@
 \alias{compare_both_stanarms}
 \title{COmpare all fits}
 \usage{
-compare_both_stanarms(some_brms_fits)
+compare_both_stanarms(some_stanlms_fits)
 }
 \arguments{
-\item{some_brms_fits}{fits}
+\item{some_stanlms_fits}{fits}
 }
 \value{
 df

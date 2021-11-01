@@ -13,5 +13,5 @@ extract_diagnostics(some_fits)
 data frame of rhats, neffs, divergent
 }
 \description{
-for many unsupervised brms
+for many unsupervised stanlms
 }
