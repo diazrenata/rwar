@@ -24,7 +24,7 @@ test_that("fit works", {
 
   comps <- compare_both_stanarms(alm)
 
-  expect_true(nrow(comps == 6))
+  expect_true(nrow(comps) == 6)
   expect_false(anyNA(comps))
 
   best <- loo_select(comps)
