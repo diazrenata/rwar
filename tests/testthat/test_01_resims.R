@@ -101,3 +101,23 @@ test_that("draw_communities", {
   expect_true(all(unique(raw$timeperiod) == c("begin", "end")))
 
 })
+
+
+
+test_that("sims wrapper", {
+
+
+  # The results from the sims_wrapper function are not going to replicate exactly numerically.
+
+  asims <- ssims_wrapper(g, "actual")
+  ncsims <- ssims_wrapper(g, "nc")
+  nscsims <- ssims_wrapper(g, "nsc")
+
+  expect_true(unique(asims$simtype) == "actual")
+
+  expect_true(unique(ncsims$simtype) == "nochange")
+
+  expect_true(unique(nscsims$simtype) == "nosizechange")
+
+
+})
