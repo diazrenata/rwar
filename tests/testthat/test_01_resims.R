@@ -27,7 +27,7 @@ test_that("just_isd", {
 
 })
 
-test_that("sampling_gmms" {
+test_that("sampling_gmms", {
 
   sgmms <- construct_sampling_gmm(g, initial_isd_seed = 1989)
   sgmms2 <- construct_sampling_gmm(g, initial_isd_seed = 1977)
@@ -45,5 +45,34 @@ test_that("sampling_gmms" {
   expect_true(all(sgmms2$begin == sgmms3$begin))
 
   expect_false(all(sgmms2$begin$density == sgmms4$begin$density))
+
+})
+
+test_that("draw_communities", {
+
+  sgmms <- construct_sampling_gmm(g, initial_isd_seed = 1989)
+
+  draws1 <- draw_communities_wrapper(g, ndraws = 2, draw_seed = 1989, sampling_gmms = sgmms, raw_isd_seed = 1977)
+
+  draws2 <- draw_communities_wrapper(g, ndraws = 2, draw_seed = 1989, sampling_gmms = sgmms, raw_isd_seed = 1977)
+
+
+  draws3 <- draw_communities_wrapper(g, ndraws = 2, sampling_gmms = sgmms)
+
+  draws4 <- draw_communities_wrapper(g, ndraws = 2, sampling_gmms = sgmms)
+
+  draws5 <- draw_communities_wrapper(g, ndraws = 2)
+  draws6 <- draw_communities_wrapper(g, ndraws = 2)
+
+  expect_true(dplyr::all_equal(draws1, draws2))
+
+  expect_false(all(draws1$total_biomass == draws3$total_biomass))
+
+  expect_false(all(draws3$total_biomass == draws4$total_biomass))
+
+  expect_false(all(draws5$total_biomass == draws1$total_biomass))
+
+  expect_false(all(draws5$total_biomass == draws6$total_biomass))
+
 
 })

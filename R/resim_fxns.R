@@ -164,6 +164,8 @@ draw_communities <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:
     raw_isd_seed <- sample(1:1000000, 1)
   }
 
+  set.seed(raw_isd_seed)
+
   # Here I am sampling ISDs to get dfs of the correct shape to then sample new body masses from different density fxns.
 
   raw_isd <- BBSsize::simulate_isd_ts(ts_comp, isd_seed = raw_isd_seed)$isd
@@ -206,6 +208,7 @@ draw_communities <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:
 
   all_individuals <- dplyr::bind_rows(actual_individuals, sim_individuals, raw_individuals)
 
+  set.seed(NULL)
 
   # Summarize individuals to get toal abundance, biomass, and energy use per year for each sim scenario.
   # And add route-level identifying info.
@@ -219,6 +222,7 @@ draw_communities <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:
     dplyr::mutate(matssname = paste0("bbs_rtrg_", route, "_", statenum))
 
   all_svs
+
 }
 
 #' Wrapper for draw_communities
