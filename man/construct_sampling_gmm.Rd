@@ -6,7 +6,7 @@
 \usage{
 construct_sampling_gmm(
   ts_comp,
-  n_isd_draws = 5,
+  n_isd_draws = 10,
   initial_isd_seed = 1989,
   begin_years = 1988:1992,
   end_years = 2014:2018

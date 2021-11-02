@@ -9,7 +9,7 @@ make_actual_sims(
   initial_isd_seed_gmm = 1989,
   n_isd_draws = 10,
   ndraws = 100,
-  initial_draw_seed = NULL
+  initial_draw_seed = 1989
 )
 }
 \arguments{

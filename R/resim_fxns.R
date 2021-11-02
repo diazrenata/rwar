@@ -26,7 +26,7 @@ just_isd <- function(ts_comp, isd_seed = NULL) {
 #' @return list of two gmm densities as dataframes with columns mass, density, timeperiod
 #' @importFrom dplyr filter bind_rows mutate
 #' @export
-construct_sampling_gmm <- function(ts_comp, n_isd_draws = 5, initial_isd_seed = 1989, begin_years = 1988:1992, end_years = 2014:2018) {
+construct_sampling_gmm <- function(ts_comp, n_isd_draws = 10, initial_isd_seed = 1989, begin_years = 1988:1992, end_years = 2014:2018) {
 
   # For debugging
   if(is.null(initial_isd_seed)) {

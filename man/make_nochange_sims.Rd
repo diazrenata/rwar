@@ -6,7 +6,7 @@
 \usage{
 make_nochange_sims(
   dat,
-  initial_isd_seed = 1989,
+  initial_isd_seed_gmm = 1989,
   n_isd_draws = 10,
   ndraws = 100,
   initial_draw_seed = 1989
@@ -15,13 +15,13 @@ make_nochange_sims(
 \arguments{
 \item{dat}{matss-style}
 
+\item{initial_isd_seed_gmm}{passed to construct_sampling_gmm, use for reproducibility}
+
 \item{n_isd_draws}{default 10}
 
 \item{ndraws}{default 100 but try fewer?}
 
 \item{initial_draw_seed}{ditto}
-
-\item{initial_isd_seed_gmm}{passed to construct_sampling_gmm, use for reproducibility}
 }
 \value{
 sims drawn as if begin years were also the end years
