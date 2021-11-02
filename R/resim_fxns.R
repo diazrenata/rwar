@@ -73,7 +73,7 @@ construct_sampling_gmm <- function(ts_comp, n_isd_draws = 5, initial_isd_seed = 
 #'
 #' @param nind how many to draw
 #' @param sampling_gmm a dataframe with mass (on log scale) and density columns.
-#' @param draw_seed don't recommmend providing
+#' @param draw_seed controls actual sampling
 #'
 #' @return drawn (log) body masses, and metainfo for whether the sampling gmm is from begin or end and the seed used when drawing
 #' @export
@@ -104,7 +104,7 @@ draw_individuals <- function(nind, sampling_gmm, draw_seed = NULL) {
 #'
 #' @param timeperiod_isd an ISD-shaped dataframe. what matters is the number of rows and that it have mass and id columns.
 #' @param sampling_gmm begin or end, just one
-#' @param draw_seed Don't recommend providing one.
+#' @param draw_seed For the actual sampling.
 #'
 #' @return dataframe with body mass (and energy use) for those individuals drawn from the sampling_gmm provided
 #' @export
@@ -136,10 +136,10 @@ add_drawn_individuals <- function(timeperiod_isd, sampling_gmm, draw_seed = NULL
 #' @param ts_comp matss-style dataset
 #' @param begin_years default 1988:1992.
 #' @param end_years default 2014:2018.
-#' @param draw_seed don't provide unless you are doing something specific
+#' @param draw_seed This is the seed used to draw the seeds that are then used to draw the individuals for the different sims.
 #' @param sampling_gmms do provide for speed! result of construct_sampling_gmms
-#' @param initial_isd_seed don't provide unless you have a specific reason to
-#' @param raw_isd_seed don't provide unless you have a reason to
+#' @param initial_isd_seed If sampling_gmms is not provided, this is the seed that will be used to pull the ISD(s) used to create the sampling gmms. I strongly recommend providing sampling_gmms.
+#' @param raw_isd_seed This is the seed used to draw the "raw" values for comparison.
 #'
 #' @return df of sim inds
 #' @export
@@ -153,7 +153,7 @@ draw_communities <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:
 
   if(is.null(sampling_gmms)) {
 
-    sampling_gmms <- construct_sampling_gmm(ts_comp, begin_years = begin_years, end_years = end_years, initial_isd_seed = NULL)
+    sampling_gmms <- construct_sampling_gmm(ts_comp, begin_years = begin_years, end_years = end_years, initial_isd_seed = initial_isd_seed)
 
   }
 
@@ -162,9 +162,8 @@ draw_communities <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:
   if(is.null(raw_isd_seed)) {
     set.seed(NULL)
     raw_isd_seed <- sample(1:1000000, 1)
+    set.seed(NULL)
   }
-
-  set.seed(raw_isd_seed)
 
   # Here I am sampling ISDs to get dfs of the correct shape to then sample new body masses from different density fxns.
 
@@ -178,23 +177,31 @@ draw_communities <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:
 
   # Draw individuals for each time period from the MATCHING density functions
   # This will destroy interannual, intratimeperiod variation in the size structure, which we're OK with (the point of using 5-year intervals is to smooth out species accumulation)
-  # I do not think it is a good idea to provide draw_seed, that will constrain things to come out the same in weird ways at this scale.
-  begin_individuals <- add_drawn_individuals(begin_isd, sampling_gmms$begin, draw_seed = draw_seed)
 
-  end_individuals <- add_drawn_individuals(end_isd, sampling_gmms$end, draw_seed = draw_seed)
+  # We want 4 different seeds for the different sims.
+
+  set.seed(draw_seed)
+  four_seeds <- sample.int(10000000, 4, replace = F)
+  set.seed(NULL)
+
+  begin_individuals <- add_drawn_individuals(begin_isd, sampling_gmms$begin, draw_seed = four_seeds[1])
+
+  end_individuals <- add_drawn_individuals(end_isd, sampling_gmms$end, draw_seed = four_seeds[2])
 
   actual_individuals <- dplyr::bind_rows(begin_individuals, end_individuals) %>%
-    dplyr::mutate(source = "currency")
+    dplyr::mutate(source = "currency",
+                  isd_seed = NA) #has a column for ISD seed but because the mass values have been overwritten it's no longer informative
 
 
   # Now draw individuals for each time period with scrambled ISDs. Specifically, draw for the beginning from the beginning ISD. But then also draw the end from the beginning ISD. This gives an "end" ISD pretending that the ISD didn't change from the beginning.
-  begin_individuals_sim <- add_drawn_individuals(begin_isd, sampling_gmms$begin, draw_seed = draw_seed)
+  begin_individuals_sim <- add_drawn_individuals(begin_isd, sampling_gmms$begin, draw_seed = four_seeds[3])
 
-  end_individuals_sim <- add_drawn_individuals(end_isd, sampling_gmms$begin, draw_seed = draw_seed)
+  end_individuals_sim <- add_drawn_individuals(end_isd, sampling_gmms$begin, draw_seed = four_seeds[4])
 
 
   sim_individuals <- dplyr::bind_rows(begin_individuals_sim, end_individuals_sim) %>%
-    dplyr::mutate(source = "abundance")
+    dplyr::mutate(source = "abundance",
+                  isd_seed = NA)
 
 
   # Go ahead and pull the raw state variable estimates too..
@@ -203,7 +210,7 @@ draw_communities <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:
     dplyr::mutate(energy = BBSsize::estimate_b(mass),
                   source = "raw",
                   isd_timeperiod = "raw",
-                  sampling_seed = NA)
+                  sampling_seed = raw_isd_seed)
 
 
   all_individuals <- dplyr::bind_rows(actual_individuals, sim_individuals, raw_individuals)
@@ -233,7 +240,7 @@ draw_communities <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:
 #' @param begin_years default 1988:1992.
 #' @param end_years default 2014:2018.
 #' @param ndraws default 100
-#' @param draw_seed don't provide unless you are doing something specific
+#' @param initial_draw_seed don't provide unless you are doing something specific
 #' @param sampling_gmms do provide for speed! result of construct_sampling_gmms
 #' @param initial_isd_seed don't provide unless you have a specific reason to
 #' @param raw_isd_seed don't provide unless you have a reason to
@@ -241,10 +248,26 @@ draw_communities <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:
 #' @return sims
 #' @export
 #' @importFrom dplyr bind_rows
-draw_communities_wrapper <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:2018, ndraws = 100, draw_seed = NULL, sampling_gmms = NULL, initial_isd_seed = NULL, raw_isd_seed = NULL) {
+draw_communities_wrapper <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:2018, ndraws = 100, initial_draw_seed = NULL, sampling_gmms = NULL, initial_isd_seed = NULL, raw_isd_seed = NULL) {
+
+  if(is.null(initial_draw_seed)) {
+    set.seed(NULL)
+    initial_draw_seed <- sample.int(10000000, 1)
+  }
+
+  set.seed(initial_draw_seed)
+
+  draw_seeds <- sample.int(100000000, size = ndraws, replace = F)
+
+  set.seed(NULL)
 
   # Run draw communities ndraws times.
-  drawn_communities <- replicate(ndraws, draw_communities(ts_comp, begin_years = begin_years, end_years = end_years, draw_seed = draw_seed, sampling_gmms = sampling_gmms, initial_isd_seed = initial_isd_seed, raw_isd_seed = raw_isd_seed), simplify = F)
+
+  drawn_communities <- list()
+  for(i in 1:length(draw_seeds)) {
+    drawn_communities[[i]] <-  draw_communities(ts_comp = ts_comp, begin_years = begin_years, end_years = end_years, sampling_gmms = sampling_gmms, initial_isd_seed = initial_isd_seed, raw_isd_seed = raw_isd_seed, draw_seed = draw_seeds[i])
+
+  }
 
   names(drawn_communities) <- 1:ndraws
 
@@ -255,10 +278,16 @@ draw_communities_wrapper <- function(ts_comp, begin_years = 1988:1992, end_years
 #' Simulate dynamics repeating begin dynamics for end
 #'
 #' @param dat matss-style
+#' @param initial_isd_seed_gmm passed to construct_sampling_gmm, use for reproducibility
+#' @param n_isd_draws default 10
+#' @param ndraws default 100 but try fewer?
+#' @param initial_isd_seed_sim passed to draw_communities_wrapper, use for reproducibility
+#' @param raw_isd_seed ditto
+#' @param initial_draw_seed ditto
 #'
 #' @return sims drawn as if begin years were also the end years
 #' @export
-make_nochange_sims <- function(dat) {
+make_nochange_sims <- function(dat, initial_isd_seed_gmm = NULL, n_isd_draws = 10, ndraws = 100, initial_isd_seed_sim = NULL, raw_isd_seed = NULL, initial_draw_seed = NULL) {
 
   dat_nochange <- dat
 
@@ -267,10 +296,11 @@ make_nochange_sims <- function(dat) {
 
   dat_nochange$abundance[end_rows, ] <- dat_nochange$abundance[begin_rows, ]
 
-  dat_nochange_gmms <- rwar::construct_sampling_gmm(dat_nochange, n_isd_draws = 10)
-  nochange_sims <- rwar::draw_communities_wrapper(dat_nochange, sampling_gmms = dat_nochange_gmms, ndraws = 100)
-  nochange_sims$simtype = "nochange"
+  dat_nochange_gmms <- rwar::construct_sampling_gmm(dat_nochange, n_isd_draws = n_isd_draws, initial_isd_seed = initial_isd_seed_gmm)
 
+  nochange_sims <- rwar::draw_communities_wrapper(dat_nochange, sampling_gmms = dat_nochange_gmms, ndraws = ndraws, initial_isd_seed = initial_isd_seed_sim, initial_draw_seed = initial_draw_seed, raw_isd_seed = raw_isd_seed)
+
+  nochange_sims$simtype = "nochange"
   return(nochange_sims)
 
 }
@@ -278,17 +308,23 @@ make_nochange_sims <- function(dat) {
 #'  Simulate dynamics repeating begin size structure for end
 #'
 #' @param dat matss style
+#' @param initial_isd_seed_gmm passed to construct_sampling_gmm, use for reproducibility
+#' @param n_isd_draws default 10
+#' @param ndraws default 100 but try fewer?
+#' @param initial_isd_seed_sim passed to draw_communities_wrapper, use for reproducibility
+#' @param raw_isd_seed ditto
+#' @param initial_draw_seed ditto
 #'
 #' @return sims drawn using begin ss for end (both actual and sim)
 #' @export
 #'
-make_nosizechange_sims <- function(dat) {
-  dat_gmms <- rwar::construct_sampling_gmm(dat, n_isd_draws = 10)
+make_nosizechange_sims <- function(dat, initial_isd_seed_gmm = NULL, n_isd_draws = 10, ndraws = 100, initial_isd_seed_sim = NULL, raw_isd_seed = NULL, initial_draw_seed = NULL) {
+  dat_gmms <- rwar::construct_sampling_gmm(dat, n_isd_draws = n_isd_draws, initial_isd_seed = initial_isd_seed_gmm)
 
   nosizechange_gmms <- dat_gmms
   nosizechange_gmms$end <- nosizechange_gmms$begin %>% mutate(timeperiod = "end")
 
-  nosizechange_sims <- rwar::draw_communities_wrapper(dat, sampling_gmms = nosizechange_gmms, ndraws = 100)
+  nosizechange_sims <- rwar::draw_communities_wrapper(dat, sampling_gmms = nosizechange_gmms, ndraws = ndraws, initial_isd_seed = initial_isd_seed_sim, initial_draw_seed = initial_draw_seed, raw_isd_seed = raw_isd_seed)
 
   nosizechange_sims$simtype = "nosizechange"
   return(nosizechange_sims)
@@ -300,12 +336,18 @@ make_nosizechange_sims <- function(dat) {
 #' Draws both actual and sim sims.
 #'
 #' @param dat matss style
+#' @param initial_isd_seed_gmm passed to construct_sampling_gmm, use for reproducibility
+#' @param n_isd_draws default 10
+#' @param ndraws default 100 but try fewer?
+#' @param initial_isd_seed_sim passed to draw_communities_wrapper, use for reproducibility
+#' @param raw_isd_seed ditto
+#' @param initial_draw_seed ditto
 #'
 #' @return sims drawn as normal
 #' @export
-make_actual_sims <- function(dat){
-  dat_gmms <- rwar::construct_sampling_gmm(dat, n_isd_draws = 10)
-  sims <- rwar::draw_communities_wrapper(dat, sampling_gmms = dat_gmms, ndraws = 100)
+make_actual_sims <- function(dat, initial_isd_seed_gmm = NULL, n_isd_draws = 10, ndraws = 100, initial_isd_seed_sim = NULL, raw_isd_seed = NULL, initial_draw_seed = NULL){
+  dat_gmms <- rwar::construct_sampling_gmm(dat, n_isd_draws = n_isd_draws, initial_isd_seed = initial_isd_seed_gmm)
+  sims <- rwar::draw_communities_wrapper(dat, sampling_gmms = dat_gmms, ndraws = ndraws, initial_isd_seed = initial_isd_seed_sim, initial_draw_seed = initial_draw_seed, raw_isd_seed = raw_isd_seed)
   sims$simtype = "actual"
   return(sims)
 }
@@ -336,17 +378,24 @@ summarize_sims <- function(sims) {
 #'
 #' @param dat matss
 #' @param simtype character
+#' @param initial_isd_seed_gmm passed to construct_sampling_gmm. seed used to start constructing the isds that are used to fit the gmm.
+#' @param n_isd_draws default 10
+#' @param ndraws default 100 but try fewer?
+#' @param initial_isd_seed_sim passed to draw_communities_wrapper, use for reproducibility (this should not ever be used.)
+#' @param raw_isd_seed seed for draws for the "raw" sims.
+#' @param initial_draw_seed seed used to draw 4 seeds which are then used to draw the different time period individuals.
+#'
 #'
 #' @return df
 #' @export
-ssims_wrapper <- function(dat, simtype = "actual") {
+ssims_wrapper <- function(dat, simtype = "actual", initial_isd_seed_gmm = NULL, n_isd_draws = 10, ndraws = 100, initial_isd_seed_sim = NULL, raw_isd_seed = NULL, initial_draw_seed = NULL) {
 
   if(simtype == "actual") {
-    sims <- make_actual_sims(dat)
+    sims <- make_actual_sims(dat, initial_isd_seed_gmm = initial_isd_seed_gmm, n_isd_draws = initial_isd_seed_gmm, ndraws = ndraws, initial_isd_seed_sim = initial_isd_seed_sim, raw_isd_seed = raw_isd_seed, initial_draw_seed = initial_draw_seed)
   } else if (simtype == "nsc") {
-    sims <- make_nosizechange_sims(dat)
+    sims <- make_nosizechange_sims(dat, initial_isd_seed_gmm = initial_isd_seed_gmm, n_isd_draws = initial_isd_seed_gmm, ndraws = ndraws, initial_isd_seed_sim = initial_isd_seed_sim, raw_isd_seed = raw_isd_seed, initial_draw_seed = initial_draw_seed)
   } else if (simtype == "nc") {
-    sims <- make_nochange_sims(dat)
+    sims <- make_nochange_sims(dat, initial_isd_seed_gmm = initial_isd_seed_gmm, n_isd_draws = initial_isd_seed_gmm, ndraws = ndraws, initial_isd_seed_sim = initial_isd_seed_sim, raw_isd_seed = raw_isd_seed, initial_draw_seed = initial_draw_seed)
   }
 
   ssims <- summarize_sims(sims)

@@ -4,10 +4,30 @@
 \alias{make_actual_sims}
 \title{Draw sims according to actual dynamics}
 \usage{
-make_actual_sims(dat)
+make_actual_sims(
+  dat,
+  initial_isd_seed_gmm = NULL,
+  n_isd_draws = 10,
+  ndraws = 100,
+  initial_isd_seed_sim = NULL,
+  raw_isd_seed = NULL,
+  initial_draw_seed = NULL
+)
 }
 \arguments{
 \item{dat}{matss style}
+
+\item{initial_isd_seed_gmm}{passed to construct_sampling_gmm, use for reproducibility}
+
+\item{n_isd_draws}{default 10}
+
+\item{ndraws}{default 100 but try fewer?}
+
+\item{initial_isd_seed_sim}{passed to draw_communities_wrapper, use for reproducibility}
+
+\item{raw_isd_seed}{ditto}
+
+\item{initial_draw_seed}{ditto}
 }
 \value{
 sims drawn as normal

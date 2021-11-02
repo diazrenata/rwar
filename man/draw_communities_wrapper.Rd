@@ -9,7 +9,7 @@ draw_communities_wrapper(
   begin_years = 1988:1992,
   end_years = 2014:2018,
   ndraws = 100,
-  draw_seed = NULL,
+  initial_draw_seed = NULL,
   sampling_gmms = NULL,
   initial_isd_seed = NULL,
   raw_isd_seed = NULL
@@ -24,7 +24,7 @@ draw_communities_wrapper(
 
 \item{ndraws}{default 100}
 
-\item{draw_seed}{don't provide unless you are doing something specific}
+\item{initial_draw_seed}{don't provide unless you are doing something specific}
 
 \item{sampling_gmms}{do provide for speed! result of construct_sampling_gmms}
 
