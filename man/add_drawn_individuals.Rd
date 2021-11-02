@@ -11,7 +11,7 @@ add_drawn_individuals(timeperiod_isd, sampling_gmm, draw_seed = NULL)
 
 \item{sampling_gmm}{begin or end, just one}
 
-\item{draw_seed}{Don't recommend providing one.}
+\item{draw_seed}{For the actual sampling.}
 }
 \value{
 dataframe with body mass (and energy use) for those individuals drawn from the sampling_gmm provided

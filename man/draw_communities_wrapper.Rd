@@ -9,10 +9,8 @@ draw_communities_wrapper(
   begin_years = 1988:1992,
   end_years = 2014:2018,
   ndraws = 100,
-  initial_draw_seed = NULL,
-  sampling_gmms = NULL,
-  initial_isd_seed = NULL,
-  raw_isd_seed = NULL
+  initial_draw_seed = 1989,
+  sampling_gmms
 )
 }
 \arguments{

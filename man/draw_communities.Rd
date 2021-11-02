@@ -8,10 +8,8 @@ draw_communities(
   ts_comp,
   begin_years = 1988:1992,
   end_years = 2014:2018,
-  draw_seed = NULL,
-  sampling_gmms = NULL,
-  initial_isd_seed = NULL,
-  raw_isd_seed = NULL
+  draw_seed = 1989,
+  sampling_gmms
 )
 }
 \arguments{
@@ -21,13 +19,13 @@ draw_communities(
 
 \item{end_years}{default 2014:2018.}
 
-\item{draw_seed}{don't provide unless you are doing something specific}
+\item{draw_seed}{This is the seed used to draw the seeds that are then used to draw the individuals for the different sims.}
 
 \item{sampling_gmms}{do provide for speed! result of construct_sampling_gmms}
 
-\item{initial_isd_seed}{don't provide unless you have a specific reason to}
+\item{initial_isd_seed}{If sampling_gmms is not provided, this is the seed that will be used to pull the ISD(s) used to create the sampling gmms. I strongly recommend providing sampling_gmms.}
 
-\item{raw_isd_seed}{don't provide unless you have a reason to}
+\item{raw_isd_seed}{This is the seed used to draw the "raw" values for comparison.}
 }
 \value{
 df of sim inds

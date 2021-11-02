@@ -7,7 +7,7 @@
 construct_sampling_gmm(
   ts_comp,
   n_isd_draws = 5,
-  initial_isd_seed = NULL,
+  initial_isd_seed = 1989,
   begin_years = 1988:1992,
   end_years = 2014:2018
 )

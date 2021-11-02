@@ -11,7 +11,7 @@ draw_individuals(nind, sampling_gmm, draw_seed = NULL)
 
 \item{sampling_gmm}{a dataframe with mass (on log scale) and density columns.}
 
-\item{draw_seed}{don't recommmend providing}
+\item{draw_seed}{controls actual sampling}
 }
 \value{
 drawn (log) body masses, and metainfo for whether the sampling gmm is from begin or end and the seed used when drawing
