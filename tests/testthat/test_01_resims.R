@@ -173,6 +173,9 @@ test_that("sims wrappers", {
 
   # expect all true
   actual_summ <- summarize_sims(multi_actual_draws)
+  multi_nsc_draws <- make_nosizechange_sims(granby, ndraws = 5)
+  multi_nc_draws <- make_nochange_sims(granby, ndraws = 5)
+
   nc_summ <- summarize_sims(multi_nc_draws)
   nsc_summ <- summarize_sims(multi_nsc_draws)
 
