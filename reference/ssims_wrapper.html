@@ -112,7 +112,16 @@
     <p>For drake to avoid saving all the sims</p>
     </div>
 
-    <pre class="usage"><span class='fu'>ssims_wrapper</span><span class='op'>(</span><span class='va'>dat</span>, simtype <span class='op'>=</span> <span class='st'>"actual"</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>ssims_wrapper</span><span class='op'>(</span>
+  <span class='va'>dat</span>,
+  simtype <span class='op'>=</span> <span class='st'>"actual"</span>,
+  initial_isd_seed_gmm <span class='op'>=</span> <span class='cn'>NULL</span>,
+  n_isd_draws <span class='op'>=</span> <span class='fl'>10</span>,
+  ndraws <span class='op'>=</span> <span class='fl'>100</span>,
+  initial_isd_seed_sim <span class='op'>=</span> <span class='cn'>NULL</span>,
+  raw_isd_seed <span class='op'>=</span> <span class='cn'>NULL</span>,
+  initial_draw_seed <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -124,6 +133,30 @@
     <tr>
       <th>simtype</th>
       <td><p>character</p></td>
+    </tr>
+    <tr>
+      <th>initial_isd_seed_gmm</th>
+      <td><p>passed to construct_sampling_gmm, use for reproducibility</p></td>
+    </tr>
+    <tr>
+      <th>n_isd_draws</th>
+      <td><p>default 10</p></td>
+    </tr>
+    <tr>
+      <th>ndraws</th>
+      <td><p>default 100 but try fewer?</p></td>
+    </tr>
+    <tr>
+      <th>initial_isd_seed_sim</th>
+      <td><p>passed to draw_communities_wrapper, use for reproducibility</p></td>
+    </tr>
+    <tr>
+      <th>raw_isd_seed</th>
+      <td><p>ditto</p></td>
+    </tr>
+    <tr>
+      <th>initial_draw_seed</th>
+      <td><p>ditto</p></td>
     </tr>
     </table>
 
