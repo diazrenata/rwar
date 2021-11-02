@@ -108,7 +108,7 @@ test_that("draw_communities", {
               seeds = toString(unique(sampling_seed)))
 
   expect_true(all(multi_draws_summ$n_seeds == 5))
-  expect_true(length(unique(multi_draws$sampling_seed) == 20))
+  expect_true(length(unique(multi_draws$sampling_seed)) == 20)
 
 
 })
@@ -141,7 +141,7 @@ test_that("sims wrappers", {
               seeds = toString(unique(sampling_seed)))
 
   expect_true(all(multi_draws_summ$n_seeds == 5))
-  expect_true(length(unique(multi_draws$sampling_seed) == 20))
+  expect_true(length(unique(multi_draws$sampling_seed)) == 20)
 
 
   multi_nsc_draws <- make_nosizechange_sims(granby, n_isd_draws = 2, ndraws = 5)
@@ -159,16 +159,16 @@ test_that("sims wrappers", {
               seeds = toString(unique(sampling_seed)))
 
   expect_true(all(multi_draws_summ$n_seeds == 5))
-  expect_true(length(unique(multi_draws$sampling_seed) == 20))
+  expect_true(length(unique(multi_draws$sampling_seed)) == 20)
   multi_nc_draws2 <- make_nochange_sims(granby,n_isd_draws = 2, ndraws= 5, initial_draw_seed = 2000)
   multi_nc_draws3 <- make_nochange_sims(granby, n_isd_draws = 2, ndraws = 5, initial_draw_seed = 1989)
 
   expect_false(all(multi_nc_draws$total_biomass == multi_nc_draws2$total_biomass)) #xpect no
   expect_true(dplyr::all_equal(multi_nc_draws, multi_nc_draws3)) # expect y
 
-  actual_ssims <- ssims_wrapper(granby, "actual", n_isd_draws = 2, ndraws = 5)
-  nc_ssims <- ssims_wrapper(granby, "nc", n_isd_draws = 2, ndraws = 5)
-  nsc_ssims <- ssims_wrapper(granby, "nsc", n_isd_draws = 2, ndraws = 5)
+  actual_ssims <- ssims_wrapper(granby, "actual", ndraws = 5)
+  nc_ssims <- ssims_wrapper(granby, "nc", ndraws = 5)
+  nsc_ssims <- ssims_wrapper(granby, "nsc", ndraws = 5)
 
 
   # expect all true
