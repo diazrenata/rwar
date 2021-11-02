@@ -116,10 +116,8 @@
   <span class='va'>ts_comp</span>,
   begin_years <span class='op'>=</span> <span class='fl'>1988</span><span class='op'>:</span><span class='fl'>1992</span>,
   end_years <span class='op'>=</span> <span class='fl'>2014</span><span class='op'>:</span><span class='fl'>2018</span>,
-  draw_seed <span class='op'>=</span> <span class='cn'>NULL</span>,
-  sampling_gmms <span class='op'>=</span> <span class='cn'>NULL</span>,
-  initial_isd_seed <span class='op'>=</span> <span class='cn'>NULL</span>,
-  raw_isd_seed <span class='op'>=</span> <span class='cn'>NULL</span>
+  draw_seed <span class='op'>=</span> <span class='fl'>1989</span>,
+  <span class='va'>sampling_gmms</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -139,7 +137,7 @@
     </tr>
     <tr>
       <th>draw_seed</th>
-      <td><p>don't provide unless you are doing something specific</p></td>
+      <td><p>This is the seed used to draw the seeds that are then used to draw the individuals for the different sims.</p></td>
     </tr>
     <tr>
       <th>sampling_gmms</th>
@@ -147,11 +145,11 @@
     </tr>
     <tr>
       <th>initial_isd_seed</th>
-      <td><p>don't provide unless you have a specific reason to</p></td>
+      <td><p>If sampling_gmms is not provided, this is the seed that will be used to pull the ISD(s) used to create the sampling gmms. I strongly recommend providing sampling_gmms.</p></td>
     </tr>
     <tr>
       <th>raw_isd_seed</th>
-      <td><p>don't provide unless you have a reason to</p></td>
+      <td><p>This is the seed used to draw the "raw" values for comparison.</p></td>
     </tr>
     </table>
 
