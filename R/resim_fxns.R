@@ -55,6 +55,8 @@ construct_sampling_gmm <- function(ts_comp, n_isd_draws = 10, initial_isd_seed =
 
   # Fit the GMMS to the repeatedly-sampled ISDs. This will give dataframes with mass and density columns.
   ts_gmm_begin <- add_gmm(ts_isds_begin)
+  set.seed(1977)
+
   ts_gmm_end <- add_gmm(ts_isds_end)
 
   set.seed(NULL)
