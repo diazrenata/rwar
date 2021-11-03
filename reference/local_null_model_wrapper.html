@@ -114,9 +114,14 @@
 
     <pre class="usage"><span class='fu'>local_null_model_wrapper</span><span class='op'>(</span>
   <span class='va'>ts_dat</span>,
-  nsims <span class='op'>=</span> <span class='fl'>100</span>,
-  begin_years <span class='op'>=</span> <span class='cn'>NULL</span>,
-  end_years <span class='op'>=</span> <span class='cn'>NULL</span>
+  n_null_model_sims <span class='op'>=</span> <span class='fl'>100</span>,
+  begin_years <span class='op'>=</span> <span class='fl'>1988</span><span class='op'>:</span><span class='fl'>1992</span>,
+  end_years <span class='op'>=</span> <span class='fl'>2014</span><span class='op'>:</span><span class='fl'>2018</span>,
+  isd_seed <span class='op'>=</span> <span class='fl'>1989</span>,
+  n_isd_draws <span class='op'>=</span> <span class='fl'>10</span>,
+  ndraws <span class='op'>=</span> <span class='fl'>100</span>,
+  initial_null_model_seed <span class='op'>=</span> <span class='fl'>1989</span>,
+  return_actual <span class='op'>=</span> <span class='cn'>F</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -124,25 +129,45 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>ts_dat</th>
-      <td><p>matss dataset</p></td>
+      <td><p>ts dat</p></td>
     </tr>
     <tr>
-      <th>nsims</th>
-      <td><p>default 100</p></td>
+      <th>n_null_model_sims</th>
+      <td><p>number of sims</p></td>
     </tr>
     <tr>
       <th>begin_years</th>
-      <td><p>pass</p></td>
+      <td><p>defaults good</p></td>
     </tr>
     <tr>
       <th>end_years</th>
-      <td><p>pass</p></td>
+      <td><p>defaults good</p></td>
+    </tr>
+    <tr>
+      <th>isd_seed</th>
+      <td><p>default good</p></td>
+    </tr>
+    <tr>
+      <th>n_isd_draws</th>
+      <td><p>default 10</p></td>
+    </tr>
+    <tr>
+      <th>ndraws</th>
+      <td><p>default 100</p></td>
+    </tr>
+    <tr>
+      <th>initial_null_model_seed</th>
+      <td><p>default 1989</p></td>
+    </tr>
+    <tr>
+      <th>return_actual</th>
+      <td><p>return actual?</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>df</p>
+    <p>df of many nms</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
