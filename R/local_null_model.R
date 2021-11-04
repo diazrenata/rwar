@@ -134,3 +134,31 @@ summarize_null_models <- function(nm_results) {
   nm_summary
 }
 
+
+#' Compare null models to reality
+#'
+#' @param actual_summary actual
+#' @param null_summary null
+#'
+#' @return df
+#' @export
+#'
+#' @importFrom dplyr select rename left_join group_by summarize distinct
+compare_actual_null_models <- function(actual_summary, null_summary) {
+
+  actual_vals <- actual_summary %>%
+    dplyr::select(e_or_b, time_ratio, matssname) %>%
+    dplyr::rename(time_ratio_actual = time_ratio)
+
+  null_scores <- null_summary %>%
+    dplyr::left_join(actual_vals) %>%
+    dplyr::group_by(matssname, e_or_b) %>%
+    dplyr::summarize(ses = ses(time_ratio_actual, time_ratio),
+                     percentile = percentile_score(time_ratio_actual, time_ratio)) %>%
+    dplyr::ungroup() %>%
+    dplyr::distinct()
+
+  null_scores
+
+}
+
