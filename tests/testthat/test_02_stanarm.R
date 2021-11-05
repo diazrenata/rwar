@@ -39,7 +39,7 @@ test_that("fit works", {
 
   qis <- winner_qis(best_draws)
 
-  direct_qis <- draws_wrapper(best, alm)
+  direct_qis <- draw_wrapper(best, alm)
 
   expect_true(all_equal(qis, direct_qis))
 
