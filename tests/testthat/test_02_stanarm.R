@@ -39,6 +39,10 @@ test_that("fit works", {
 
   qis <- winner_qis(best_draws)
 
+  direct_qis <- draws_wrapper(best, alm)
+
+  expect_true(all_equal(qis, direct_qis))
+
   expect_true(nrow(qis) == 4)
   expect_true(all(unique(qis$modtype) == c("tb_stanlm_full", "te_stanlm_notime")))
 

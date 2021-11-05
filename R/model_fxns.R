@@ -243,3 +243,18 @@ compare_both_stanarms<- function(some_stanlms_fits) {
 
 }
 
+
+#' Tiny wrapper to just get qis
+#'
+#' @param winners result of loo_select
+#' @param fits result of fit_stanarms
+#'
+#' @return qis for draws from winning model
+#' @export
+#'
+draw_wrapper <- function(winners, fits) {
+  draws = rwar::winner_draws(winners, fits)
+  draw_qis = rwar::winner_qis(draws)
+  draw_qis
+}
+
