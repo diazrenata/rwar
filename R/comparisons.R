@@ -124,6 +124,11 @@ ks_comparison <- function(dat, initial_isd_seed = 1989, begin_years = 1988:1992,
   begin_mean_e <- mean(estimate_b(begin_raw_isd$mass))
   end_mean_e <- mean(estimate_b(end_raw_isd$mass))
 
+  begin_median_size <- median(begin_raw_isd$mass)
+  end_median_size <- median(end_raw_isd$mass)
+
+  begin_median_e <- median(estimate_b(begin_raw_isd$mass))
+  end_median_e <- median(estimate_b(end_raw_isd$mass))
 
   actual_ks_test = ks.test(begin_raw_isd$mass, end_raw_isd$mass)
 
@@ -164,7 +169,11 @@ ks_comparison <- function(dat, initial_isd_seed = 1989, begin_years = 1988:1992,
     begin_mean_size = begin_mean_size,
     end_mean_size  = end_mean_size,
     begin_mean_e = begin_mean_e,
-    end_mean_e = end_mean_e
+    end_mean_e = end_mean_e,
+    begin_median_size = begin_median_size,
+    end_median_size  = end_median_size,
+    begin_median_e = begin_median_e,
+    end_median_e = end_median_e
   )
 
   set.seed(NULL)
