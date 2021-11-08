@@ -118,11 +118,11 @@ ks_comparison <- function(dat, initial_isd_seed = 1989, begin_years = 1988:1992,
   end_raw_isd <- raw_isds %>%
     dplyr::filter(year %in% end_years)
 
-  begin_mean_size <- mean(begin_raw_isd$mass)
-  end_mean_size <- mean(end_raw_isd$mass)
+  begin_mean_size <- mean(sqrt(begin_raw_isd$mass))
+  end_mean_size <- mean(sqrt(end_raw_isd$mass))
 
-  begin_mean_e <- mean(estimate_b(begin_raw_isd$mass))
-  end_mean_e <- mean(estimate_b(end_raw_isd$mass))
+  begin_mean_e <- mean(sqrt(estimate_b(begin_raw_isd$mass)))
+  end_mean_e <- mean(sqrt(estimate_b(end_raw_isd$mass)))
 
   begin_median_size <- median(begin_raw_isd$mass)
   end_median_size <- median(end_raw_isd$mass)
