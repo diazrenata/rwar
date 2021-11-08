@@ -46,5 +46,51 @@ core_transient <- function(dat, core_only = F){
   dat_out
 }
 
+#' Get only transient or non-core speices
+#'
+#' @param dat matss-style
+#' @param transient_only if T, returns only transient (present in <1/3 of samples). if F, removes core (present in > 2/3 of samples).
+#'
+#' @return matss-style but filtered
+#' @export
+#'
+#' @importFrom dplyr mutate filter
+just_transient <- function(dat, transient_only = T){
 
+
+  sp_occurrences <- dat$abundance > 0
+
+  sp_presences <- data.frame(
+    sp = colnames(sp_occurrences),
+    noccurrences = colSums(sp_occurrences),
+    nyears = nrow(sp_occurrences)
+  ) %>%
+    dplyr::mutate(prop_occurrences = noccurrences / nyears) %>%
+    dplyr::mutate(is_transient = prop_occurrences < 1/3,
+                  is_core = prop_occurrences > 2/3) # following Coyle et al.
+
+  not_core <- sp_presences %>%
+    dplyr::filter(!core)
+
+  transient <- sp_presences %>%
+    dplyr::filter(is_transient)
+
+
+  if(transient_only) {
+
+    sp_to_keep <- transient$sp
+
+  } else {
+
+    sp_to_keep <- not_core$sp
+  }
+
+  dat_out <- dat
+
+  dat_out$abundance <- dat_out$abundance[ , sp_to_keep]
+  dat_out$metadata$species_table <- dat_out$metadata$species_table %>%
+    dplyr::filter(id %in% sp_to_keep)
+
+  dat_out
+}
 

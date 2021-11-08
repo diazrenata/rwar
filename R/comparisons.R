@@ -118,6 +118,12 @@ ks_comparison <- function(dat, initial_isd_seed = 1989, begin_years = 1988:1992,
   end_raw_isd <- raw_isds %>%
     dplyr::filter(year %in% end_years)
 
+  begin_mean_size <- mean(begin_raw_isd$mass)
+  end_mean_size <- mean(end_raw_isd$mass)
+
+  begin_mean_e <- mean(estimate_b(begin_raw_isd$mass))
+  end_mean_e <- mean(estimate_b(end_raw_isd$mass))
+
 
   actual_ks_test = ks.test(begin_raw_isd$mass, end_raw_isd$mass)
 
@@ -154,7 +160,11 @@ ks_comparison <- function(dat, initial_isd_seed = 1989, begin_years = 1988:1992,
     actual_d = actual_ks_test$statistic,
     actual_p = actual_ks_test$p.value,
     d_ses = ses(actual_ks_test$statistic, shuffles$d),
-    d_percentile = percentile_score(actual_ks_test$statistic, shuffles$d)
+    d_percentile = percentile_score(actual_ks_test$statistic, shuffles$d),
+    begin_mean_size = begin_mean_size,
+    end_mean_size  = end_mean_size,
+    begin_mean_e = begin_mean_e,
+    end_mean_e = end_mean_e
   )
 
   set.seed(NULL)
