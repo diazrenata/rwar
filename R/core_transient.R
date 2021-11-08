@@ -70,7 +70,7 @@ just_transient <- function(dat, transient_only = T){
                   is_core = prop_occurrences > 2/3) # following Coyle et al.
 
   not_core <- sp_presences %>%
-    dplyr::filter(!core)
+    dplyr::filter(!is_core)
 
   transient <- sp_presences %>%
     dplyr::filter(is_transient)
