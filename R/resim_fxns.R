@@ -154,7 +154,7 @@ draw_communities <- function(ts_comp, begin_years = 1988:1992, end_years = 2014:
 
   # Here I am sampling ISDs to get dfs of the correct shape to then sample new body masses from different density fxns.
 
-  raw_isd <- BBSsize::simulate_isd_ts(ts_comp)$isd
+  raw_isd <- BBSsize::simulate_isd_ts(ts_comp, isd_seed = 1989)$isd
 
   begin_isd <- dplyr::filter(raw_isd, year %in% begin_years) %>%
     dplyr::mutate(timeperiod = "begin")
