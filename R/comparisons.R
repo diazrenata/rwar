@@ -50,6 +50,9 @@ sp_comparison <- function(dat, begin_years = 1988:1992, end_years = 2014:2018) {
   commatrix <- dplyr::bind_rows(begin_totals, end_totals) %>% as.matrix()
 
   bcd <- vegan::vegdist(commatrix)
+  bcd_binary <- vegan::vegdist(commatrix, binary = T)
+  jac <- vegan::vegdist(commatrix, "jaccard", FALSE)
+  jac_binary <- vegan::vegdist(commatrix, "jaccard", TRUE)
 
   sp_overlap <- dplyr::bind_rows(begin_totals, end_totals) %>%
     dplyr::mutate(timeperiod = c("begin", "end")) %>%
@@ -64,7 +67,11 @@ sp_comparison <- function(dat, begin_years = 1988:1992, end_years = 2014:2018) {
     dplyr::group_by_all() %>%
     dplyr::mutate(minRelAbund = min(begin, end)) %>%
     dplyr::ungroup() %>%
-    dplyr::summarize(sp_overlap = sum(minRelAbund))
+    dplyr::summarize(sp_overlap = sum(minRelAbund)) %>%
+    dplyr::mutate(bcd = bcd[1],
+                  bcd_binary = bcd_binary[1],
+                  jac = jac[1],
+                  jac_binary = jac_binary[1])
 
   sp_overlap
 
