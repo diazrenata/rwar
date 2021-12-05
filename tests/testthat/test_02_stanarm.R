@@ -41,7 +41,7 @@ test_that("fit works", {
 
   direct_qis <- draw_wrapper(best, alm)
 
-  expect_true(all_equal(qis, direct_qis))
+  expect_true(dplyr::all_equal(qis, direct_qis))
 
   expect_true(nrow(qis) == 4)
   expect_true(all(unique(qis$modtype) == c("tb_stanlm_full", "te_stanlm_notime")))

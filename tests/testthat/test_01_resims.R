@@ -36,8 +36,8 @@ test_that("sampling_gmms", {
 
   sgmms4 <-  construct_sampling_gmm(g)
 
-  expect_true(sum(sgmms$begin$density) == 1)
-  expect_true(sum(sgmms$end$density) == 1)
+  expect_equivalent(sum(sgmms$begin$density), 1)
+  expect_equivalent(sum(sgmms$end$density), 1)
 
   expect_true(all(sgmms$begin$mass == sgmms2$begin$mass))
   expect_false(all(sgmms$begin$density == sgmms2$begin$density))
