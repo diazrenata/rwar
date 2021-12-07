@@ -12,7 +12,7 @@ shuffle_regional <- function(ts_dat, ranges_dat, null_mod_seed) {
 
   ts_locationdat <- ts_dat$metadata$location
 
-  ts_speciesoverlap <- dplyr::left_join(ts_locationdat, ranges_dat)
+  ts_speciesoverlap <- dplyr::left_join(ts_locationdat, ranges_dat, by = c("route", "statenum"))
 
   overlapping_spp <- ts_speciesoverlap$id
   encountered_spp <- ts_dat$metadata$species_table$id

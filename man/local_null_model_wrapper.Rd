@@ -6,22 +6,37 @@
 \usage{
 local_null_model_wrapper(
   ts_dat,
-  nsims = 100,
-  begin_years = NULL,
-  end_years = NULL
+  n_null_model_sims = 100,
+  begin_years = 1988:1992,
+  end_years = 2014:2018,
+  isd_seed = 1989,
+  n_isd_draws = 10,
+  ndraws = 100,
+  initial_null_model_seed = 1989,
+  return_actual = F
 )
 }
 \arguments{
-\item{ts_dat}{matss dataset}
+\item{ts_dat}{ts dat}
 
-\item{nsims}{default 100}
+\item{n_null_model_sims}{number of sims}
 
-\item{begin_years}{pass}
+\item{begin_years}{defaults good}
 
-\item{end_years}{pass}
+\item{end_years}{defaults good}
+
+\item{isd_seed}{default good}
+
+\item{n_isd_draws}{default 10}
+
+\item{ndraws}{default 100}
+
+\item{initial_null_model_seed}{default 1989}
+
+\item{return_actual}{return actual?}
 }
 \value{
-df
+df of many nms
 }
 \description{
 Wrapper for local null model

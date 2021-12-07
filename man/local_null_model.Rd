@@ -6,28 +6,37 @@
 \usage{
 local_null_model(
   ts_dat,
-  null_mod_seed = NULL,
-  sim_index = NULL,
-  begin_years = NULL,
-  end_years = NULL,
-  isd_seed = NULL
+  null_mod_seed = 1989,
+  sim_index = 1,
+  begin_years = 1988:1992,
+  end_years = 2014:2018,
+  isd_seed = 1989,
+  n_isd_draws = 10,
+  ndraws = 100,
+  return_actual = FALSE
 )
 }
 \arguments{
-\item{ts_dat}{a MATSS-shaped dataset}
+\item{ts_dat}{matssdat}
 
-\item{null_mod_seed}{seed to use when reshuffling species. if none given will be drawn.}
+\item{null_mod_seed}{seed to control reshuffling of species}
 
-\item{sim_index}{sim index to track}
+\item{sim_index}{for wrapping}
 
-\item{begin_years}{to pass to all_core_analyses}
+\item{begin_years}{default 1988:1992}
 
-\item{end_years}{to pass to all_core_analyses}
+\item{end_years}{default 2014:2018}
 
-\item{isd_seed}{to pass to all_core_analyses}
+\item{isd_seed}{default 1989, passed to ssims_wrapper}
+
+\item{n_isd_draws}{default 10, passed to ssims_wrapper}
+
+\item{ndraws}{default 100, passed to ssims_wraper}
+
+\item{return_actual}{return actual (unmodified) results?}
 }
 \value{
-results of all_core_analyses
+df of sims
 }
 \description{
 Reassign species IDs using all species ever observed on a single route.
